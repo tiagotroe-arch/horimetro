@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FlightLog BR</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap');
+:root{
+  --bg:#0b0f1a;--sur:#111827;--sur2:#1a2236;--bdr:#1e2d45;
+  --acc:#00b4d8;--acc2:#0077b6;--ok:#22d3a5;--warn:#f59e0b;--err:#ef4444;
+  --txt:#e2e8f0;--mut:#64748b;
+  --mono:"Share Tech Mono",monospace;--sans:"Inter",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);min-height:100vh;padding-bottom:60px}
+header{background:linear-gradient(135deg,#0d1b2a,#0b0f1a);border-bottom:1px solid var(--bdr);padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo{width:38px;height:38px;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+header h1{font-family:var(--sans);font-size:1.05rem;font-weight:600;letter-spacing:.5px;color:var(--txt)}
+
+.wrap{max-width:480px;margin:0 auto;padding:14px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:16px;margin-bottom:12px}
+.card-title{font-family:var(--mono);font-size:.65rem;letter-spacing:3px;text-transform:uppercase;color:var(--acc);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title::before{content:"";width:3px;height:13px;background:var(--acc);border-radius:2px}
+/* HORIMETRO */
+.horo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hg label{display:block;font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);margin-bottom:5px}
+.hw{position:relative}
+.hw input{width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;padding:11px 40px 11px 12px;font-family:var(--mono);font-size:1.1rem;color:var(--txt);outline:none;-webkit-appearance:none;transition:border-color .2s}
+.hw input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(0,180,216,.12)}
+.hw .cam{position:absolute;right:5px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--acc);font-size:18px;cursor:pointer;padding:6px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.hw .cam:active{opacity:.6}
+.ft{margin-top:12px;background:var(--sur2);border:1px solid var(--bdr);border-radius:12px;padding:14px;text-align:center}
+.ft-lbl{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+.ft-val{font-family:var(--mono);font-size:2.6rem;letter-spacing:4px;line-height:1;color:var(--ok);transition:color .2s}
+.ft-dec{font-family:var(--mono);font-size:.85rem;color:rgba(34,211,165,.6);margin-top:5px;letter-spacing:1px}
+/* REGISTRO */
+.reg{margin-top:10px;background:rgba(0,180,216,.04);border:1px solid rgba(0,180,216,.16);border-radius:12px;padding:12px}
+.reg-title{font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--acc);margin-bottom:8px}
+.reg-list{max-height:150px;overflow-y:auto}
+.ri{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr)}
+.ri:last-child{border-bottom:none}
+.ri-val{font-family:var(--mono);font-size:1.8rem;color:var(--ok);letter-spacing:3px;line-height:1.1}
+.ri-meta{font-size:.62rem;color:var(--mut);margin-top:4px;font-family:var(--mono)}
+.ri-del{background:none;border:none;color:var(--err);cursor:pointer;font-size:.75rem;padding:3px 7px;border-radius:4px;-webkit-tap-highlight-color:transparent}
+.reg-empty{color:var(--mut);font-size:.72rem;text-align:center;padding:8px 0}
+/* ROTA */
+.rgrid{display:grid;grid-template-columns:1fr 24px 1fr;gap:8px;align-items:start}
+.ig{position:relative}
+.ig label{display:block;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:5px}
+.ig input{width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;padding:12px 6px;font-family:var(--mono);font-size:1.3rem;color:var(--txt);outline:none;text-transform:uppercase;text-align:center;letter-spacing:3px;-webkit-appearance:none;transition:border-color .2s}
+.ig input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(0,180,216,.12)}
+.ig-city{font-size:.62rem;color:var(--acc);text-align:center;margin-top:4px;min-height:15px;font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rsep{display:flex;align-items:center;justify-content:center;padding-top:26px;color:var(--mut);font-size:14px}
+/* DROPDOWN */
+.drop{position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:200;background:var(--sur);border:1px solid rgba(0,180,216,.5);border-radius:10px;max-height:260px;overflow-y:auto;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.drop.open{display:block}
+.di{padding:8px 11px;border-bottom:1px solid var(--bdr);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.di:last-child{border-bottom:none}
+.di:active{background:rgba(0,180,216,.1)}
+.di-code{font-family:var(--mono);font-size:.82rem;color:var(--acc);letter-spacing:2px}
+.di-name{font-size:.68rem;color:var(--txt);margin-top:1px}
+.di-loc{font-size:.6rem;color:var(--mut)}
+
+/* COMBUSTÍVEL */
+.fuel-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.fg label{display:block;font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);margin-bottom:5px}
+.fg input{width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;padding:12px 12px;font-family:var(--mono);font-size:1.05rem;color:var(--txt);outline:none;-webkit-appearance:none;transition:border-color .2s}
+.fg input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(0,180,216,.12)}
+.fuel-result{background:var(--sur2);border-radius:12px;padding:13px;margin-bottom:12px}
+.fr-row{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}
+.fr-row:last-child{margin-bottom:0}
+.fr-lbl{font-size:.62rem;color:var(--mut);text-transform:uppercase;letter-spacing:1px;min-width:90px}
+.fr-val{font-family:var(--mono);font-size:1.3rem;color:var(--ok);letter-spacing:1px}
+.fr-val2{font-family:var(--mono);font-size:1.0rem;color:rgba(34,211,165,.6);letter-spacing:1px}
+.fr-unit{font-size:.62rem;color:var(--mut);font-family:var(--mono)}
+.fr-sep{height:1px;background:var(--bdr);margin:8px 0}
+.tbm-box{background:rgba(0,119,182,.08);border:1px solid rgba(0,180,216,.18);border-radius:12px;padding:13px}
+.tbm-title{font-family:var(--mono);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--acc);margin-bottom:4px}
+.tbm-note{font-size:.6rem;color:var(--mut);margin-bottom:10px}
+.tbm-result{}
+.tbm-row{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}
+.tbm-lbl{font-size:.6rem;color:var(--mut);min-width:130px;letter-spacing:.5px}
+.tbm-val{font-family:var(--mono);font-size:1.15rem;color:var(--acc);letter-spacing:1px}
+.tbm-val2{font-family:var(--mono);font-size:.9rem;color:rgba(0,180,216,.6);letter-spacing:1px}
+.tbm-u{font-size:.6rem;color:var(--mut);font-family:var(--mono)}
+.tbm-empty{font-size:.68rem;color:var(--mut);text-align:center;padding:6px 0}
+
+/* DISTANCIA */
+.dist{margin-top:12px;background:linear-gradient(135deg,rgba(0,119,182,.1),rgba(0,180,216,.03));border:1px solid rgba(0,180,216,.22);border-radius:12px;padding:14px;display:none}
+.dist.show{display:flex;align-items:center;justify-content:space-between}
+.dist-lbl{font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+.dist-row{display:flex;align-items:baseline;gap:6px;margin-bottom:3px}
+.dist-nm{font-family:var(--mono);font-size:1.85rem;color:var(--acc);letter-spacing:2px;line-height:1}
+.dist-u{font-family:var(--mono);font-size:.62rem;color:var(--mut)}
+/* AISWEB */
+.awlinks{display:none;gap:8px;margin-top:10px}
+.awlinks.show{display:flex}
+.awlink{flex:1;padding:8px;border-radius:8px;border:1px solid var(--bdr);background:var(--sur2);color:var(--mut);font-size:.67rem;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;-webkit-tap-highlight-color:transparent}
+.awlink:active{background:rgba(0,180,216,.08);color:var(--acc)}
+/* MODAL CAMERA */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:300;flex-direction:column;align-items:center;padding:16px;overflow-y:auto}
+.modal.open{display:flex}
+.mbox{background:var(--sur);border:1px solid var(--bdr);border-radius:18px;padding:16px;width:100%;max-width:420px;margin:auto}
+.mhdr{font-family:var(--mono);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--acc);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.mclose{background:none;border:1px solid var(--bdr);border-radius:7px;color:var(--mut);cursor:pointer;padding:3px 10px;font-size:.7rem;-webkit-tap-highlight-color:transparent}
+#vid{width:100%;border-radius:10px;background:#000;max-height:50vh;object-fit:cover;display:block}
+#cvs{display:none;width:100%;border-radius:10px;max-height:50vh;object-fit:cover}
+.mbtns{display:flex;gap:8px;margin-top:10px}
+.mb{flex:1;padding:12px;border-radius:9px;border:none;cursor:pointer;font-family:var(--sans);font-size:.82rem;font-weight:600;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.mb:active{opacity:.8}
+.mbp{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.mbs{background:var(--sur2);color:var(--txt);border:1px solid var(--bdr)}
+.obox{margin-top:10px;background:var(--sur2);border-radius:10px;padding:12px;display:none}
+.olbl{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.oinp{width:100%;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:1.2rem;color:var(--txt);outline:none;-webkit-appearance:none}
+.oinp:focus{border-color:var(--acc)}
+.ost{font-size:.68rem;color:var(--mut);margin-top:6px;min-height:18px;display:flex;align-items:center;gap:6px}
+.spin{width:13px;height:13px;border:2px solid var(--bdr);border-top-color:var(--acc);border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(90px);background:var(--sur);border:1px solid var(--ok);border-radius:10px;padding:9px 18px;font-size:.78rem;color:var(--ok);font-family:var(--mono);letter-spacing:1px;z-index:400;transition:transform .3s ease;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.w{border-color:var(--warn);color:var(--warn)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">&#9992;</div>
+  <div>
+    <h1>Diário de Bordo</h1>
+  </div>
+</header>
+<div class="wrap">
+
+  <!-- HORIMETRO -->
+  <div class="card">
+    <div class="card-title">Horimetro</div>
+    <div class="horo-grid">
+      <div class="hg">
+        <label>Decolagem</label>
+        <div class="hw">
+          <input type="number" id="hStart" placeholder="0000.0" step="0.1" min="0" inputmode="decimal">
+          <button class="cam" id="btnCamStart" type="button" title="Fotografar horimetro">&#128247;</button>
+        </div>
+      </div>
+      <div class="hg">
+        <label>Pouso</label>
+        <div class="hw">
+          <input type="number" id="hEnd" placeholder="0000.0" step="0.1" min="0" inputmode="decimal">
+          <button class="cam" id="btnCamEnd" type="button" title="Fotografar horimetro final">&#128247;</button>
+        </div>
+      </div>
+    </div>
+    <div class="ft">
+      <div class="ft-lbl">&#9200; Tempo de voo</div>
+      <div class="ft-val" id="ftVal">--:--</div>
+      <div class="ft-dec" id="ftSub">&nbsp;</div>
+    </div>
+    <div class="reg">
+      <div class="reg-title">&#128203; Proxima decolagem</div>
+      <div class="reg-list" id="regList"></div>
+    </div>
+  </div>
+
+  <!-- ROTA -->
+  <div class="card">
+    <div class="card-title">Rota <span id="ap-status" style="font-size:.6rem;letter-spacing:1px;font-family:var(--sans);color:var(--ok);margin-left:8px;text-transform:none;font-weight:400"></span></div>
+    <div class="rgrid">
+      <div class="ig">
+        <label>Partida</label>
+        <input type="text" id="iDep" placeholder="" maxlength="4" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+        <div class="ig-city" id="cDep">&nbsp;</div>
+        <div class="drop" id="dDep"></div>
+      </div>
+      <div class="rsep">&#10140;</div>
+      <div class="ig">
+        <label>Destino</label>
+        <input type="text" id="iArr" placeholder="" maxlength="4" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+        <div class="ig-city" id="cArr">&nbsp;</div>
+        <div class="drop" id="dArr"></div>
+      </div>
+    </div>
+    <div class="dist" id="distBox">
+      <div>
+        <div class="dist-lbl">&#128207; Distancia direta</div>
+        <div class="dist-row"><span class="dist-nm" id="dNM">0</span><span class="dist-u">NM</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMBUSTÍVEL -->
+  <div class="card">
+    <div class="card-title">Combustível</div>
+    <div class="fuel-grid">
+      <div class="fg">
+        <label>Decolagem (gal)</label>
+        <div class="fw">
+          <input type="number" id="fuelDep" placeholder="0.0" step="0.1" min="0" inputmode="decimal">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Remanescente (gal)</label>
+        <div class="fw">
+          <input type="number" id="fuelArr" placeholder="0.0" step="0.1" min="0" inputmode="decimal">
+        </div>
+      </div>
+    </div>
+    <div class="fuel-result" id="fuelResult" style="display:none">
+      <div class="fr-row">
+        <span class="fr-lbl">Consumido</span>
+        <span class="fr-val" id="fuelUsed">—</span>
+        <span class="fr-unit">gal US</span>
+        <span class="fr-val2" id="fuelUsedL" style="margin-left:8px">—</span>
+        <span class="fr-unit">L</span>
+      </div>
+      <div class="fr-sep"></div>
+      <div class="fr-row">
+        <span class="fr-lbl">Remanescente</span>
+        <span class="fr-val" id="fuelRem">—</span>
+        <span class="fr-unit">gal US</span>
+        <span class="fr-val2" id="fuelRemL" style="margin-left:8px">—</span>
+        <span class="fr-unit">L</span>
+      </div>
+    </div>
+    <div class="tbm-box">
+      <div class="tbm-title">&#9992; TBM 900 — Consumo do voo</div>
+      <div id="tbmCalc" style="display:none">
+        <div class="tbm-row">
+          <span class="tbm-lbl">Consumo médio</span>
+          <span class="tbm-val" id="tbmAvg">—</span>
+          <span class="tbm-u">gal/h</span>
+          <span class="tbm-val2" id="tbmAvgL" style="margin-left:6px">—</span>
+          <span class="tbm-u">L/h</span>
+        </div>
+        <div class="tbm-row">
+          <span class="tbm-lbl">Autonomia restante</span>
+          <span class="tbm-val" id="tbmAuto">—</span>
+        </div>
+      </div>
+      <div id="tbmHint" style="display:none"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL CAMERA -->
+<div class="modal" id="modal">
+  <div class="mbox">
+    <div class="mhdr">
+      <span>&#128247; Ler horimetro</span>
+      <button class="mclose" id="btnClose" type="button">&#10005; Fechar</button>
+    </div>
+    <video id="vid" autoplay playsinline muted></video>
+    <canvas id="cvs"></canvas>
+    <div class="mbtns" id="mb1">
+      <button class="mb mbp" id="btnCapture" type="button">&#128248; Capturar foto</button>
+    </div>
+    <div class="mbtns" id="mb2" style="display:none">
+      <button class="mb mbs" id="btnRetake" type="button">&#8617; Refazer</button>
+      <button class="mb mbp" id="btnAnalyze" type="button">&#128269; Analisar com IA</button>
+    </div>
+    <div class="obox" id="obox">
+      <div class="olbl">Valor detectado &mdash; confirme ou corrija</div>
+      <input class="oinp" type="number" id="oval" step="0.1" inputmode="decimal" placeholder="0000.0">
+      <div class="ost" id="ost"></div>
+      <div class="mbtns" style="margin-top:8px">
+        <button class="mb mbp" id="btnApply" type="button">&#10003; Usar este valor</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="airports-br.js"></script>
+<script>
+// ═══════════════════════════════════════════
+// AERODROMOS — OurAirports (todos BR) com cache local
+// ═══════════════════════════════════════════
+var AP = [];
+var AP_READY = false;
+
+// Aerodromos carregados online do OurAirports (todos BR registrados)
+var AP = [];
+var AP_READY = false;
+var AP_LOADING = false;
+
+function setStatus(msg, ok){
+  var el=document.getElementById("ap-status");
+  if(el){el.textContent=msg; el.style.color=ok?"var(--ok)":"var(--warn)";}
+}
+
+function applyAP(list){
+  var seen={}, out=[];
+  for(var i=0;i<list.length;i++){
+    if(!seen[list[i].code]){seen[list[i].code]=true;out.push(list[i]);}
+  }
+  AP=out; AP_READY=true; AP_LOADING=false;
+  setStatus("✓ "+AP.length+" aeródromos",true);
+  setTimeout(function(){setStatus("",true);},3000);
+}
+
+function parseCSV(csv){
+  var lines=csv.split("\n"), result=[];
+  if(lines.length<2) return result;
+  var h=lines[0].split(",").map(function(x){return x.replace(/"/g,"").trim();});
+  var iI=h.indexOf("ident"), iG=h.indexOf("gps_code"), iN=h.indexOf("name");
+  var iM=h.indexOf("municipality"), iR=h.indexOf("iso_region");
+  var iC=h.indexOf("iso_country");
+  var iLa=h.indexOf("latitude_deg"), iLo=h.indexOf("longitude_deg");
+  for(var i=1;i<lines.length;i++){
+    var line=lines[i]; if(!line) continue;
+    var cols=[], cur="", inQ=false;
+    for(var c=0;c<line.length;c++){
+      var ch=line[c];
+      if(ch==='"'){inQ=!inQ;}
+      else if(ch===","&&!inQ){cols.push(cur);cur="";}
+      else cur+=ch;
+    }
+    cols.push(cur);
+    if((cols[iC]||"").replace(/"/g,"")!=="BR") continue;
+    var code=((cols[iG]||"").replace(/"/g,"").trim())||((cols[iI]||"").replace(/"/g,"").trim());
+    if(!code||code.length<2||code.length>4) continue;
+    var la=parseFloat((cols[iLa]||"").replace(/"/g,""));
+    var lo=parseFloat((cols[iLo]||"").replace(/"/g,""));
+    if(isNaN(la)||isNaN(lo)) continue;
+    var name=(cols[iN]||"").replace(/"/g,"").trim();
+    var city=(cols[iM]||"").replace(/"/g,"").trim();
+    var state=(cols[iR]||"").replace(/"/g,"").replace("BR-","").trim();
+    result.push({code:code,name:name,city:city,state:state,lat:la,lon:lo});
+  }
+  return result;
+}
+
+function loadAirports(){
+  if(AP_LOADING||AP_READY) return;
+  AP_LOADING=true;
+  setStatus("Carregando aeródromos...",true);
+  // Tentar raw GitHub (sem CORS) depois fallback davidmegginson.github.io
+  var urls=[
+    "https://raw.githubusercontent.com/davidmegginson/ourairports-data/main/airports.csv",
+    "https://davidmegginson.github.io/ourairports-data/airports.csv"
+  ];
+  var tried=0;
+  function tryNext(){
+    if(tried>=urls.length){
+      AP_LOADING=false;
+      setStatus("Sem conexão",false);
+      return;
+    }
+    var url=urls[tried++];
+    var ctrl=new AbortController();
+    var tid=setTimeout(function(){ctrl.abort();tryNext();},15000);
+    fetch(url,{signal:ctrl.signal})
+      .then(function(r){return r.text();})
+      .then(function(csv){
+        clearTimeout(tid);
+        var list=parseCSV(csv);
+        if(list.length>100){
+          applyAP(list);
+        } else {
+          tryNext();
+        }
+      })
+      .catch(function(){clearTimeout(tid);tryNext();});
+  }
+  tryNext();
+}
+
+// Carregar assim que a página abre
+window.addEventListener("load",loadAirports);
+
+function setStatus(msg,ok){
+  var el=document.getElementById("ap-status");
+  if(el){el.textContent=msg;el.style.color=ok?"var(--ok)":"var(--warn)";}
+}
+
+function applyAP(list,source){
+  // Deduplicar por código
+  var seen={}, deduped=[];
+  for(var i=0;i<list.length;i++){
+    if(!seen[list[i].code]){seen[list[i].code]=true;deduped.push(list[i]);}
+  }
+  AP=deduped; AP_READY=true;
+  setStatus("✓ "+AP.length+" aeródromos ("+source+")",true);
+  setTimeout(function(){setStatus("",true);},4000);
+}
+
+function parseCSV(csv){
+  var lines=csv.split("\n"), result=[];
+  if(lines.length<2) return result;
+  var h=lines[0].split(",").map(function(x){return x.replace(/"/g,"").trim();});
+  var iI=h.indexOf("ident"), iG=h.indexOf("gps_code"), iN=h.indexOf("name");
+  var iM=h.indexOf("municipality"), iR=h.indexOf("iso_region");
+  var iC=h.indexOf("iso_country");
+  var iLa=h.indexOf("latitude_deg"), iLo=h.indexOf("longitude_deg");
+  for(var i=1;i<lines.length;i++){
+    var line=lines[i]; if(!line) continue;
+    var cols=[], cur="", inQ=false;
+    for(var c=0;c<line.length;c++){
+      var ch=line[c];
+      if(ch==='"'){ inQ=!inQ; }
+      else if(ch===","&&!inQ){ cols.push(cur); cur=""; }
+      else cur+=ch;
+    }
+    cols.push(cur);
+    if((cols[iC]||"").replace(/"/g,"")!=="BR") continue;
+    // Aceitar código ICAO brasileiro: 2 a 4 letras prefixo SB/SD/SI/SJ/SN/SS/SW/SR/SE/SF
+    var code=((cols[iG]||"")||(cols[iI]||"")).replace(/"/g,"").trim();
+    if(code.length<2||code.length>4) continue;
+    if(!/^S[ABCDEFGHIJKLMNOPQRSTUVWXYZ]/.test(code)) continue;
+    var la=parseFloat((cols[iLa]||"").replace(/"/g,""));
+    var lo=parseFloat((cols[iLo]||"").replace(/"/g,""));
+    if(isNaN(la)||isNaN(lo)) continue;
+    var name=(cols[iN]||"").replace(/"/g,"").trim();
+    var city=(cols[iM]||"").replace(/"/g,"").trim();
+    var state=(cols[iR]||"").replace(/"/g,"").replace("BR-","").trim();
+    result.push({code:code,name:name,city:city,state:state,lat:la,lon:lo});
+  }
+  return result;
+}
+
+function tryCache(){
+  try{
+    var ts=parseInt(localStorage.getItem("ap_ts")||"0");
+    if(Date.now()-ts < 86400000){ // 24h
+      var cached=localStorage.getItem("ap_cache");
+      if(cached){
+        var list=JSON.parse(cached);
+        if(list.length>500){ applyAP(list,"cache"); return true; }
+      }
+    }
+  }catch(e){}
+  return false;
+}
+
+function saveCache(list){
+  try{
+    localStorage.setItem("ap_cache",JSON.stringify(list));
+    localStorage.setItem("ap_ts",String(Date.now()));
+  }catch(e){}
+}
+
+function loadOnline(onFail){
+  var ctrl=new AbortController();
+  var tid=setTimeout(function(){ctrl.abort();},12000);
+  fetch("https://raw.githubusercontent.com/davidmegginson/ourairports-data/main/airports.csv",{signal:ctrl.signal,headers:{"Accept":"text/plain"}}).catch(function(){return fetch("https://davidmegginson.github.io/ourairports-data/airports.csv",{signal:ctrl.signal});})
+    .then(function(r){ return r.text(); })
+    .then(function(csv){
+      clearTimeout(tid);
+      var list=parseCSV(csv);
+      if(list.length>200){
+        saveCache(list);
+        applyAP(list,"OurAirports");
+      } else { onFail(); }
+    })
+    .catch(function(){ clearTimeout(tid); onFail(); });
+}
+
+(function init(){
+  // SEMPRE aplicar fallback imediatamente para busca funcionar na hora
+  AP = FB.slice();
+  AP_READY = true;
+  setStatus("",true);
+
+  // 1. Se airports-br.js local existir (GitHub Pages) — mesclar com FB
+  if(window.AIRPORTS_BR && window.AIRPORTS_BR.length>100){
+    var ext=window.AIRPORTS_BR.map(function(r){
+      return{code:r[0],name:r[1],city:r[2],state:r[3],lat:r[4],lon:r[5]};
+    });
+    var seen2={};
+    for(var i=0;i<ext.length;i++) seen2[ext[i].code]=ext[i];
+    for(var i=0;i<FB.length;i++) if(!seen2[FB[i].code]) ext.push(FB[i]);
+    applyAP(ext,"local+ROTAER");
+  }
+
+  // 2. Verificar cache (24h) — substitui se maior
+  try{
+    var ts=parseInt(localStorage.getItem("ap_ts")||"0");
+    if(Date.now()-ts < 86400000){
+      var cached=localStorage.getItem("ap_cache");
+      if(cached){
+        var clist=JSON.parse(cached);
+        if(clist.length>AP.length){ applyAP(clist,"cache"); }
+      }
+    }
+  }catch(e){}
+
+  // 3. Buscar OurAirports em background (todos BR)
+  setTimeout(function(){
+    loadOnline(function(){/* ja tem FB, nao faz nada */});
+  }, 500);
+})();
+
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function hav(a,b,c,d){
+  var R1=3440.065,R2=6371,e=(c-a)*Math.PI/180,f=(d-b)*Math.PI/180;
+  var g=Math.sin(e/2)*Math.sin(e/2)+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(f/2)*Math.sin(f/2);
+  var h=2*Math.atan2(Math.sqrt(g),Math.sqrt(1-g));
+  return{nm:Math.round(R1*h),km:Math.round(R2*h)};
+}
+function norm(s){
+  return (s||"").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Z0-9]/g," ").replace(/\s+/g," ").trim();
+}
+function toast(m,w){
+  var t=document.getElementById("toast");
+  t.textContent=m;t.className="toast"+(w?" w":"");
+  void t.offsetWidth;t.classList.add("show");
+  clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove("show");},2400);
+}
+
+// ═══════════════════════════════════════════
+// HORIMETRO
+// ═══════════════════════════════════════════
+var hE=document.getElementById("hEnd"),hS=document.getElementById("hStart");
+var fv=document.getElementById("ftVal"),fs=document.getElementById("ftSub");
+var lastSaved=null;
+
+function calcFT(){
+  var e=parseFloat(hE.value),s=parseFloat(hS.value);
+  // Salva horimetro final apenas quando campo tem valor valido (nao apaga se limpar campo)
+  var rawEnd=document.getElementById("hEnd").value.trim();
+  // Sem erros intermediarios — so mostra resultado quando ambos preenchidos e validos
+  if(isNaN(e)||isNaN(s)||e<s){
+    fv.textContent="--:--";
+    fv.style.color="var(--ok)";
+    fs.textContent="";
+    return;
+  }
+  fv.style.color="var(--ok)";
+  // Inteiros para evitar erro de ponto flutuante (ex: 556.3-555.5 = 0.7999 em JS)
+  var s10=Math.round(s*10);
+  var e10=Math.round(e*10);
+  var diff10=e10-s10;
+  var diff=diff10/10;
+  var totalMin=diff10*6;
+  var h=Math.floor(totalMin/60);
+  var m=totalMin%60;
+  fv.textContent=(h<10?"0":"")+h+":"+(m<10?"0":"")+m;
+  fs.textContent=diff.toFixed(1)+" h";
+  if(typeof calcFuel==="function") calcFuel();
+}
+hE.addEventListener("input",calcFT);
+hS.addEventListener("input",calcFT);
+// Salva horimetro final ao sair do campo (blur) — nao apaga se campo for limpo depois
+
+
+// ═══════════════════════════════════════════
+// REGISTRO AUTOMATICO
+// ═══════════════════════════════════════════
+// Salva SOMENTE UM horimetro final — sempre sobrescreve o anterior
+function loadReg(){
+  // Tenta localStorage primeiro, depois cookie como backup
+  try{
+    var v=localStorage.getItem("flbr_h");
+    if(v&&v!=="null") return JSON.parse(v);
+  }catch(e){}
+  // Backup: cookie
+  try{
+    var m=document.cookie.match(/flbr_h=([^;]+)/);
+    if(m) return JSON.parse(decodeURIComponent(m[1]));
+  }catch(e){}
+  return null;
+}
+function saveReg(r){
+  try{ localStorage.setItem("flbr_h", r?JSON.stringify(r):"null"); }catch(e){}
+  // Salvar também em cookie (365 dias) como backup
+  try{
+    if(r){
+      var exp=new Date(Date.now()+365*864e5).toUTCString();
+      document.cookie="flbr_h="+encodeURIComponent(JSON.stringify(r))+";expires="+exp+";path=/";
+    }
+  }catch(e){}
+}
+function renderReg(){
+  var r=loadReg(),el=document.getElementById("regList");
+  if(!r){el.innerHTML='<div class="reg-empty">Nenhum horimetro salvo ainda</div>';return;}
+  el.innerHTML='<div class="ri"><div><div class="ri-val">'
+    +r.val+'</div><div class="ri-meta">'+r.date+(r.route?' &bull; '+r.route:'')+'</div></div></div>';
+}
+function autoSave(val){
+  if(isNaN(val)||val<=0)return; // nunca salva vazio ou zero
+  var k=val.toFixed(1);
+  if(lastSaved===k)return; // nao duplica
+  lastSaved=k;
+  var route=(selDep&&selArr)?selDep.code+"->"+selArr.code:"";
+  var now=new Date().toLocaleString("pt-BR");
+  saveReg({val:k,date:now,route:route});
+  renderReg();
+  toast("Proxima decolagem "+k+" salva");
+}
+renderReg();
+
+// ═══════════════════════════════════════════
+// CAMERA — nota: permissao e obrigatoria pelo navegador,
+// nao e possivel contornar isso por seguranca do sistema
+// ═══════════════════════════════════════════
+var camTgt=null,camStr=null;
+
+function openCam(tgt){
+  camTgt=tgt;
+  var mo=document.getElementById("modal");
+  mo.classList.add("open");
+  document.getElementById("cvs").style.display="none";
+  document.getElementById("vid").style.display="block";
+  document.getElementById("mb1").style.display="flex";
+  document.getElementById("mb2").style.display="none";
+  document.getElementById("obox").style.display="none";
+  document.getElementById("ost").innerHTML="";
+  // Inicia camera imediatamente
+  startCam();
+}
+function startCam(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    closeCam();toast("Camera nao disponivel neste navegador",1);return;
+  }
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920}}})
+  .then(function(s){
+    camStr=s;
+    var v=document.getElementById("vid");
+    v.srcObject=s;v.play().catch(function(){});
+  }).catch(function(err){
+    closeCam();
+    var m={
+      NotAllowedError:"Permissao negada. Va em Configuracoes > Privacidade > Camera e permita o navegador.",
+      NotFoundError:"Nenhuma camera encontrada.",
+      NotReadableError:"Camera em uso por outro app. Feche e tente novamente."
+    };
+    toast(m[err.name]||"Erro: "+err.name,1);
+  });
+}
+function closeCam(){
+  if(camStr){camStr.getTracks().forEach(function(t){t.stop();});camStr=null;}
+  document.getElementById("modal").classList.remove("open");
+}
+function doCapture(){
+  var v=document.getElementById("vid"),c=document.getElementById("cvs");
+  c.width=v.videoWidth||640;c.height=v.videoHeight||480;
+  c.getContext("2d").drawImage(v,0,0);
+  c.style.display="block";v.style.display="none";
+  document.getElementById("mb1").style.display="none";
+  document.getElementById("mb2").style.display="flex";
+  if(camStr){camStr.getTracks().forEach(function(t){t.stop();});camStr=null;}
+}
+function doRetake(){
+  document.getElementById("cvs").style.display="none";
+  document.getElementById("vid").style.display="block";
+  document.getElementById("mb1").style.display="flex";
+  document.getElementById("mb2").style.display="none";
+  document.getElementById("obox").style.display="none";
+  startCam();
+}
+async function doAnalyze(){
+  var c=document.getElementById("cvs"),ost=document.getElementById("ost"),ov=document.getElementById("oval");
+  document.getElementById("obox").style.display="block";
+  ov.value="";ost.innerHTML='<span class="spin"></span> Analisando com IA...';
+  var b64=c.toDataURL("image/jpeg",0.85).split(",")[1];
+  try{
+    var r=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:80,
+        messages:[{role:"user",content:[
+          {type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},
+          {type:"text",text:"Foto do horimetro de aeronave. Extraia o numero. Responda SOMENTE com o numero decimal. Exemplo: 1234.5"}
+        ]}]})
+    });
+    var d=await r.json();
+    var txt=(d.content||[]).map(function(x){return x.text||"";}).join("").trim();
+    var m=txt.match(/\d+\.?\d*/);
+    ov.value=m?m[0]:txt;
+    ost.innerHTML='<span style="color:var(--ok)">&#10003; Detectado &mdash; confirme ou edite</span>';
+  }catch(e){
+    ost.innerHTML='<span style="color:var(--warn)">&#9888; Falha. Digite manualmente abaixo.</span>';
+  }
+}
+function doApply(){
+  var v=document.getElementById("oval").value;
+  if(!v){toast("Sem valor para aplicar",1);return;}
+  (camTgt==="end"?hE:hS).value=v;
+  calcFT();closeCam();toast("Valor "+v+" aplicado!");
+}
+
+document.getElementById("btnCamEnd").onclick=function(){openCam("end");};
+document.getElementById("btnCamStart").onclick=function(){openCam("start");};
+document.getElementById("btnClose").onclick=closeCam;
+document.getElementById("btnCapture").onclick=doCapture;
+document.getElementById("btnRetake").onclick=doRetake;
+document.getElementById("btnAnalyze").onclick=doAnalyze;
+document.getElementById("btnApply").onclick=doApply;
+
+// ═══════════════════════════════════════════
+// BUSCA ICAO — busca em nome, cidade, estado, codigo
+// ═══════════════════════════════════════════
+var selDep=null,selArr=null;
+
+function search(q){
+  if(!q||q.length<2) return [];
+  var nq=norm(q);
+  var exact=[], startC=[], startN=[], rest=[];
+  for(var i=0;i<AP.length;i++){
+    var a=AP[i];
+    var nc=norm(a.code), nn=norm(a.name), nci=norm(a.city);
+    if(nc===nq){ exact.push(a); }
+    else if(nc.indexOf(nq)===0){ startC.push(a); }
+    else if(nci.indexOf(nq)===0||nn.indexOf(nq)===0){ startN.push(a); }
+    else if(nci.indexOf(nq)>=0||nn.indexOf(nq)>=0||norm(a.state)===nq){ rest.push(a); }
+  }
+  return exact.concat(startC).concat(startN).concat(rest).slice(0,15);
+}
+
+function renderDrop(type,list){
+  var el=document.getElementById(type==="dep"?"dDep":"dArr");
+  if(!list.length){el.innerHTML="";el.classList.remove("open");return;}
+  el.innerHTML=list.map(function(a){
+    return '<div class="di" onclick="pick(\'"+type+"\',\'"+a.code+"\')">'
+      +'<div class="di-code">'+a.code+'</div>'
+      +'<div class="di-name">'+a.name+'</div>'
+      +'<div class="di-loc">'+a.city+", "+a.state+'</div></div>';
+  }).join("");
+  el.classList.add("open");
+}
+
+function pick(type,code){
+  var a=null;
+  for(var i=0;i<AP.length;i++){if(AP[i].code===code){a=AP[i];break;}}
+  if(!a)return;
+  var inp=document.getElementById(type==="dep"?"iDep":"iArr");
+  var cit=document.getElementById(type==="dep"?"cDep":"cArr");
+  var drp=document.getElementById(type==="dep"?"dDep":"dArr");
+  var aw=null;
+  inp.value=a.code;
+  cit.textContent=a.city+", "+a.state;
+  drp.innerHTML="";drp.classList.remove("open");
+
+  if(type==="dep")selDep=a;else selArr=a;
+  updDist();
+}
+
+function onInput(type){
+  var val=document.getElementById(type==="dep"?"iDep":"iArr").value.trim();
+  var cit=document.getElementById(type==="dep"?"cDep":"cArr");
+  if(type==="dep")selDep=null;else selArr=null;
+  cit.textContent=" ";updDist();
+  var dr=document.getElementById(type==="dep"?"dDep":"dArr");
+  if(!val){dr.innerHTML="";dr.classList.remove("open");return;}
+  var up=val.toUpperCase();
+  if(up.length===4){
+    for(var i=0;i<AP.length;i++){if(AP[i].code===up){pick(type,up);return;}}
+  }
+  if(up.length>=2) renderDrop(type,search(up));
+  else{dr.innerHTML="";dr.classList.remove("open");}
+}
+
+function updDist(){
+  var box=document.getElementById("distBox"),aw=document.getElementById("awLinks");
+  if(selDep&&selArr&&selDep.code!==selArr.code){
+    var d=hav(selDep.lat,selDep.lon,selArr.lat,selArr.lon);
+    document.getElementById("dNM").textContent=d.nm.toLocaleString("pt-BR");
+    box.classList.add("show");aw.classList.add("show");
+  }else{box.classList.remove("show");aw.classList.remove("show");}
+}
+
+// ═══════════════════════════════════════════
+// COMBUSTÍVEL + TBM 900
+// ═══════════════════════════════════════════
+var GAL_TO_L = 3.78541;
+
+function calcFuel(){
+  var dep = parseFloat(document.getElementById("fuelDep").value);
+  var arr = parseFloat(document.getElementById("fuelArr").value);
+  var res = document.getElementById("fuelResult");
+  var tbmRes = document.getElementById("tbmCalc");
+  var tbmNote = document.getElementById("tbmHint");
+
+  if(isNaN(dep)||dep<0||isNaN(arr)||arr<0||arr>dep){
+    res.style.display="none";
+    tbmRes.style.display="none";
+    tbmNote.style.display="block";
+    tbmNote.textContent="Preencha combustível e horímetros para calcular";
+    return;
+  }
+
+  var used = Math.round((dep - arr) * 10) / 10;
+  var rem = Math.round(arr * 10) / 10;
+  var usedL = Math.round(used * GAL_TO_L * 10) / 10;
+  var remL = Math.round(rem * GAL_TO_L * 10) / 10;
+
+  document.getElementById("fuelUsed").textContent = used.toFixed(1);
+  document.getElementById("fuelUsedL").textContent = usedL.toFixed(1);
+  document.getElementById("fuelRem").textContent = rem.toFixed(1);
+  document.getElementById("fuelRemL").textContent = remL.toFixed(1);
+  res.style.display = "block";
+
+  // TBM 900 — calcular com tempo de voo se disponível
+  var hS = parseFloat(document.getElementById("hStart").value);
+  var hE = parseFloat(document.getElementById("hEnd").value);
+
+  if(!isNaN(hS) && !isNaN(hE) && hE > hS && used > 0){
+    var s10 = Math.round(hS * 10);
+    var e10 = Math.round(hE * 10);
+    var diff10 = e10 - s10;
+    var diffH = diff10 / 10; // horas decimais reais
+
+    var avgGPH = Math.round((used / diffH) * 10) / 10;
+    var avgLPH = Math.round(avgGPH * GAL_TO_L * 10) / 10;
+
+    // Autonomia restante usando consumo médio calculado
+    var autoH = Math.round((rem / avgGPH) * 10) / 10;
+    var autoHH = Math.floor(autoH);
+    var autoMM = Math.round((autoH - autoHH) * 60);
+    var autoStr = autoHH + "h " + (autoMM < 10 ? "0" : "") + autoMM + "m";
+
+    document.getElementById("tbmAvg").textContent = avgGPH.toFixed(1);
+    document.getElementById("tbmAvgL").textContent = avgLPH.toFixed(1);
+    document.getElementById("tbmAuto").textContent = autoStr;
+
+    tbmRes.style.display = "block";
+    tbmNote.style.display = "none";
+  } else {
+    // Sem tempo de voo: mostrar apenas referência TBM 900
+    tbmRes.style.display = "none";
+    tbmNote.style.display = "block";
+    if(used > 0){
+      tbmNote.textContent = "Preencha horímetros para calcular gal/h";
+    } else {
+      tbmNote.textContent = "Preencha combustível e horímetros para calcular";
+    }
+  }
+}
+
+// Recalcular combustível quando horímetros mudarem
+
+
+
+document.getElementById("iDep").addEventListener("input",function(){onInput("dep");});
+document.getElementById("iArr").addEventListener("input",function(){onInput("arr");});
+document.addEventListener("click",function(e){
+  if(!e.target.closest(".ig")){
+    document.querySelectorAll(".drop").forEach(function(d){d.innerHTML="";d.classList.remove("open");});
+  }
+});
+</script>
+</body>
+</html>
