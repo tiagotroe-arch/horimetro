@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Diario de Bordo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap');
+:root{
+  --bg:#0b0f1a;--sur:#111827;--sur2:#1a2236;--bdr:#1e2d45;
+  --acc:#00b4d8;--acc2:#0077b6;--ok:#22d3a5;--warn:#f59e0b;--err:#ef4444;
+  --txt:#e2e8f0;--mut:#64748b;
+  --mono:"Share Tech Mono",monospace;--sans:"Inter",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);padding-bottom:60px}
+header{background:linear-gradient(135deg,#0d1b2a,#0b0f1a);border-bottom:1px solid var(--bdr);
+  padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--acc),var(--acc2));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+header h1{font-family:var(--sans);font-size:1.05rem;font-weight:600;color:var(--txt)}
+.wrap{max-width:480px;margin:0 auto;padding:14px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:16px;margin-bottom:12px}
+.ctitle{font-family:var(--mono);font-size:.65rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--acc);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ctitle::before{content:"";width:3px;height:13px;background:var(--acc);border-radius:2px}
+
+/* INPUTS */
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{margin-bottom:0}
+.field label{display:block;font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--mut);margin-bottom:5px}
+.field input{width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;
+  padding:12px;font-family:var(--mono);font-size:1.1rem;color:var(--txt);
+  outline:none;-webkit-appearance:none;transition:border-color .2s}
+.field input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(0,180,216,.12)}
+.camwrap{position:relative}
+.camwrap input{padding-right:44px}
+.cambtn{position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--acc);font-size:18px;cursor:pointer;
+  padding:6px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+
+/* TEMPO VOO */
+.ftbox{margin-top:12px;background:var(--sur2);border:1px solid var(--bdr);
+  border-radius:12px;padding:14px;text-align:center}
+.ftlbl{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+.ftval{font-family:var(--mono);font-size:2.6rem;letter-spacing:4px;line-height:1;color:var(--ok)}
+.ftsub{font-size:1.35rem;color:rgba(34,211,165,.7);margin-top:6px;font-family:var(--mono);letter-spacing:2px}
+
+/* PROXIMA DECOLAGEM */
+.proxbox{margin-top:10px;background:rgba(0,180,216,.04);
+  border:1px solid rgba(0,180,216,.16);border-radius:12px;padding:12px}
+.proxlbl{font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--acc);margin-bottom:6px}
+.proxval{font-family:var(--mono);font-size:1.9rem;color:var(--ok);letter-spacing:3px;line-height:1.1}
+.proxmeta{font-size:.62rem;color:var(--mut);margin-top:4px;font-family:var(--mono)}
+.proxempty{font-size:.7rem;color:var(--mut)}
+
+/* ROTA */
+.rgrid{display:grid;grid-template-columns:1fr 24px 1fr;gap:8px;align-items:start}
+.ig{position:relative}
+.ig label{display:block;font-size:.62rem;letter-spacing:2px;text-transform:uppercase;
+  color:var(--mut);margin-bottom:5px}
+.ig input{width:100%;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;
+  padding:12px 6px;font-family:var(--mono);font-size:1.3rem;color:var(--txt);
+  outline:none;text-transform:uppercase;text-align:center;letter-spacing:3px;
+  -webkit-appearance:none;transition:border-color .2s}
+.ig input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(0,180,216,.12)}
+.igcity{font-size:.62rem;color:var(--acc);text-align:center;margin-top:4px;
+  min-height:15px;font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rsep{display:flex;align-items:center;justify-content:center;padding-top:26px;color:var(--mut)}
+.drop{position:absolute;top:calc(100% + 3px);left:0;right:0;z-index:200;
+  background:var(--sur);border:1px solid rgba(0,180,216,.5);border-radius:10px;
+  max-height:260px;overflow-y:auto;display:none;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.drop.open{display:block}
+.di{padding:8px 11px;border-bottom:1px solid var(--bdr);cursor:pointer}
+.di:last-child{border-bottom:none}
+.di:active{background:rgba(0,180,216,.1)}
+.di-code{font-family:var(--mono);font-size:.82rem;color:var(--acc);letter-spacing:2px}
+.di-name{font-size:.68rem;color:var(--txt);margin-top:1px}
+.di-loc{font-size:.6rem;color:var(--mut)}
+.di-msg{padding:12px;text-align:center;font-size:.72rem;color:var(--mut)}
+.distbox{margin-top:12px;background:linear-gradient(135deg,rgba(0,119,182,.1),rgba(0,180,216,.03));
+  border:1px solid rgba(0,180,216,.22);border-radius:12px;padding:14px;display:none}
+.distbox.show{display:block}
+.distlbl{font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.distnm{font-family:var(--mono);font-size:1.85rem;color:var(--acc);letter-spacing:2px}
+.distu{font-family:var(--mono);font-size:.62rem;color:var(--mut)}
+.apst{font-size:.6rem;font-family:var(--sans);font-weight:400;text-transform:none;
+  letter-spacing:0;margin-left:8px;color:var(--ok)}
+
+/* COMBUSTIVEL */
+.fresult{background:var(--sur2);border-radius:12px;padding:13px;margin-top:12px;display:none}
+.fresult.show{display:block}
+.frow{display:flex;align-items:baseline;gap:6px;margin-bottom:6px}
+.frow:last-child{margin-bottom:0}
+.flbl{font-size:.62rem;color:var(--mut);text-transform:uppercase;letter-spacing:1px;min-width:95px}
+.fval{font-family:var(--mono);font-size:1.35rem;color:var(--ok);letter-spacing:1px}
+.fval2{font-family:var(--mono);font-size:1.0rem;color:rgba(34,211,165,.55)}
+.funit{font-size:.6rem;color:var(--mut);font-family:var(--mono)}
+.fsep{height:1px;background:var(--bdr);margin:8px 0}
+.tbminfo{margin-top:8px;font-size:.62rem;color:var(--mut);text-align:right;font-family:var(--mono)}
+
+/* MODAL CAMERA */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:300;
+  flex-direction:column;align-items:center;padding:16px;overflow-y:auto}
+.modal.open{display:flex}
+.mbox{background:var(--sur);border:1px solid var(--bdr);border-radius:18px;
+  padding:16px;width:100%;max-width:420px;margin:auto}
+.mhdr{font-family:var(--mono);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;
+  color:var(--acc);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.mclose{background:none;border:1px solid var(--bdr);border-radius:7px;color:var(--mut);
+  cursor:pointer;padding:4px 12px;font-size:.75rem;-webkit-tap-highlight-color:transparent}
+#camCvs{width:100%;border-radius:10px;max-height:52vh;object-fit:cover}
+.mbtns{display:flex;gap:8px;margin-top:10px}
+.mb{flex:1;padding:13px;border-radius:9px;border:none;cursor:pointer;
+  font-family:var(--sans);font-size:.85rem;font-weight:600;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.mb:active{opacity:.8}
+.mbp{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.mbs{background:var(--sur2);color:var(--txt);border:1px solid var(--bdr)}
+.obox{margin-top:12px;background:var(--sur2);border-radius:10px;padding:14px;display:none}
+.olbl{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+.oinp{width:100%;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;
+  padding:12px;font-family:var(--mono);font-size:1.3rem;color:var(--txt);
+  outline:none;-webkit-appearance:none;text-align:center;letter-spacing:2px}
+.oinp:focus{border-color:var(--acc)}
+.ost{font-size:.68rem;color:var(--mut);margin-top:8px;min-height:20px;
+  display:flex;align-items:center;gap:6px}
+.spin{width:13px;height:13px;border:2px solid var(--bdr);border-top-color:var(--acc);
+  border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(90px);
+  background:var(--sur);border:1px solid var(--ok);border-radius:10px;
+  padding:9px 18px;font-size:.78rem;color:var(--ok);font-family:var(--mono);
+  letter-spacing:1px;z-index:400;transition:transform .3s;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.w{border-color:var(--warn);color:var(--warn)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">&#9992;</div>
+  <h1>Diário de Bordo</h1>
+</header>
+
+<div class="wrap">
+
+<!-- ░ HORIMETRO ░ -->
+<div class="card">
+  <div class="ctitle">Horímetro</div>
+  <div class="row2">
+    <div class="field">
+      <label>Decolagem</label>
+      <div class="camwrap">
+        <input type="number" id="hDec" placeholder="0000.0" step="0.1" min="0" inputmode="decimal">
+        <button class="cambtn" id="btnCamDec" type="button">&#128247;</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Pouso</label>
+      <div class="camwrap">
+        <input type="number" id="hPou" placeholder="0000.0" step="0.1" min="0" inputmode="decimal">
+        <button class="cambtn" id="btnCamPou" type="button">&#128247;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ftbox">
+    <div class="ftlbl">&#9200; Tempo de voo</div>
+    <div class="ftval" id="ftVal">--:--</div>
+    <div class="ftsub" id="ftSub"></div>
+  </div>
+
+  <div class="proxbox">
+    <div class="proxlbl">&#128203; Próxima decolagem</div>
+    <div id="proxCont"><div class="proxempty">Preencha o horímetro de decolagem</div></div>
+  </div>
+</div>
+
+<!-- ░ ROTA ░ -->
+<div class="card">
+  <div class="ctitle">Rota <span class="apst" id="apSt"></span></div>
+  <div class="rgrid">
+    <div class="ig">
+      <label>Partida</label>
+      <input type="text" id="iDep" placeholder="" maxlength="4"
+        autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+      <div class="igcity" id="cDep">&nbsp;</div>
+      <div class="drop" id="dDep"></div>
+    </div>
+    <div class="rsep">&#10140;</div>
+    <div class="ig">
+      <label>Destino</label>
+      <input type="text" id="iArr" placeholder="" maxlength="4"
+        autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+      <div class="igcity" id="cArr">&nbsp;</div>
+      <div class="drop" id="dArr"></div>
+    </div>
+  </div>
+  <div class="distbox" id="distBox">
+    <div class="distlbl">&#128207; Distância direta</div>
+    <span class="distnm" id="dNM">0</span> <span class="distu">NM</span>
+  </div>
+</div>
+
+<!-- ░ COMBUSTIVEL ░ -->
+<div class="card">
+  <div class="ctitle">Combustível</div>
+  <div class="field">
+    <label>Abastecido na decolagem (gal US)</label>
+    <input type="number" id="fDec" placeholder="0.0" step="0.1" min="0" inputmode="decimal">
+  </div>
+  <div class="fresult" id="fresult">
+    <div class="frow">
+      <span class="flbl">Consumido</span>
+      <span class="fval" id="fUsed">—</span>
+      <span class="funit">gal</span>
+      <span class="fval2" id="fUsedL" style="margin-left:6px">—</span>
+      <span class="funit">L</span>
+    </div>
+    <div class="fsep"></div>
+    <div class="frow">
+      <span class="flbl">Remanescente</span>
+      <span class="fval" id="fRemV">—</span>
+      <span class="funit">gal</span>
+      <span class="fval2" id="fRemL" style="margin-left:6px">—</span>
+      <span class="funit">L</span>
+    </div>
+    <div class="fsep"></div>
+    <div class="frow">
+      <span class="flbl">Autonomia</span>
+      <span class="fval" id="fAuto">—</span>
+    </div>
+    <div class="tbminfo">TBM 900 · 57 gal/h (cruzeiro)</div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- ░ MODAL CAMERA ░ -->
+<div class="modal" id="camModal">
+  <div class="mbox">
+    <div class="mhdr">
+      <span>&#128247; Fotografar horímetro</span>
+      <button class="mclose" id="btnClose" type="button">&#10005; Fechar</button>
+    </div>
+    <!-- Câmera nativa iOS/Android via input file — foco automático perfeito -->
+    <input type="file" id="camFile" accept="image/*" capture="environment"
+      style="display:none">
+    <canvas id="camCvs" style="display:none;width:100%;border-radius:10px;max-height:52vh;object-fit:cover"></canvas>
+    <div id="camPreview" style="text-align:center;padding:30px 0;color:var(--mut);font-size:.8rem">
+      &#128247; Toque para fotografar o horímetro
+    </div>
+    <div class="mbtns" id="mb1">
+      <button class="mb mbp" id="btnCapture" type="button">&#128247; Abrir câmera</button>
+    </div>
+    <div class="mbtns" id="mb2" style="display:none">
+      <button class="mb mbs" id="btnRetake" type="button">&#8617; Nova foto</button>
+      <button class="mb mbp" id="btnAnalyze" type="button">&#128269; Analisar IA</button>
+    </div>
+    <div class="obox" id="obox">
+      <div class="olbl">Valor detectado — confirme ou edite</div>
+      <input class="oinp" type="number" id="oVal" step="0.1" inputmode="decimal" placeholder="0000.0">
+      <div class="ost" id="oSt"></div>
+      <div class="mbtns" style="margin-top:10px">
+        <button class="mb mbp" id="btnApply" type="button">&#10003; Usar este valor</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONSTANTES ───────────────────────────────────────────
+var GL      = 3.78541;   // gal US -> litros
+var TBM_GPH = 57;        // TBM 900 consumo medio cruzeiro gal/h
+
+// ─── UTILS ────────────────────────────────────────────────
+function pad(n){ return n < 10 ? "0"+n : ""+n; }
+
+function hav(la1,lo1,la2,lo2){
+  var R=3440.065, d=(la2-la1)*Math.PI/180, e=(lo2-lo1)*Math.PI/180;
+  var a=Math.sin(d/2)*Math.sin(d/2)+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(e/2)*Math.sin(e/2);
+  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+}
+
+function norm(s){
+  return (s||"").toUpperCase().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"").replace(/[^A-Z0-9]/g," ").replace(/\s+/g," ").trim();
+}
+
+function showToast(msg, warn){
+  var t=document.getElementById("toast");
+  t.textContent=msg; t.className="toast"+(warn?" w":"");
+  void t.offsetWidth; t.classList.add("show");
+  clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("show");},2600);
+}
+
+// ─── HORIMETRO ────────────────────────────────────────────
+var elHDec = document.getElementById("hDec");
+var elHPou = document.getElementById("hPou");
+
+function calcHoro(){
+  var d = parseFloat(elHDec.value);
+  var p = parseFloat(elHPou.value);
+
+  // Tempo de voo
+  if(isNaN(d) || isNaN(p) || p <= d){
+    document.getElementById("ftVal").textContent = "--:--";
+    document.getElementById("ftSub").textContent = "";
+    calcCombust();
+    return;
+  }
+
+  var d10      = Math.round(d * 10);
+  var p10      = Math.round(p * 10);
+  var diff10   = p10 - d10;
+  var totalMin = diff10 * 6;
+  var hh       = Math.floor(totalMin / 60);
+  var mm       = totalMin % 60;
+
+  document.getElementById("ftVal").textContent = pad(hh) + ":" + pad(mm);
+  document.getElementById("ftSub").textContent = (diff10/10).toFixed(1) + " h";
+  calcCombust();
+}
+
+// Ao sair do campo pouso: salvar e preencher decolagem para proximo voo
+elHPou.addEventListener("blur", function(){
+  var p = parseFloat(elHPou.value);
+  if(!isNaN(p) && p > 0){
+    salvarPouso(p);
+    // Preencher campo decolagem automaticamente para o proximo voo
+    elHDec.value = p.toFixed(1);
+  }
+});
+
+elHDec.addEventListener("input", calcHoro);
+elHPou.addEventListener("input", calcHoro);
+
+// ─── PROXIMA DECOLAGEM ────────────────────────────────────
+function saveProx(val){
+  var obj = { val: val.toFixed(1), date: new Date().toLocaleString("pt-BR") };
+  try{ localStorage.setItem("db_prox", JSON.stringify(obj)); }catch(e){}
+  try{
+    var exp = new Date(Date.now() + 365*864e5).toUTCString();
+    document.cookie = "db_prox=" + encodeURIComponent(JSON.stringify(obj)) + ";expires="+exp+";path=/";
+  }catch(e){}
+  renderProx(obj);
+}
+
+// Salva o horimetro de POUSO como proxima decolagem
+// e preenche o campo decolagem automaticamente
+function salvarPouso(val){
+  saveProx(val);
+}
+
+function loadProx(){
+  try{ var v=localStorage.getItem("db_prox"); if(v) return JSON.parse(v); }catch(e){}
+  try{ var m=document.cookie.match(/db_prox=([^;]+)/); if(m) return JSON.parse(decodeURIComponent(m[1])); }catch(e){}
+  return null;
+}
+
+function renderProx(obj){
+  var el = document.getElementById("proxCont");
+  if(!obj){
+    el.innerHTML = "<div class=\"proxempty\">Preencha o horímetro de decolagem</div>";
+    return;
+  }
+  el.innerHTML = "<div class=\"proxval\">"+obj.val+"</div>"
+               + "<div class=\"proxmeta\">"+obj.date+"</div>";
+}
+
+// Ao carregar: preencher campo decolagem com ultimo horimetro salvo
+(function(){
+  var obj = loadProx();
+  renderProx(obj);
+  if(obj && obj.val){
+    elHDec.value = obj.val;
+    // Nao dispara calcHoro — pouso ainda esta vazio
+  }
+})();
+
+// ─── COMBUSTIVEL ──────────────────────────────────────────
+var elFDec = document.getElementById("fDec");
+
+function calcCombust(){
+  var fd  = parseFloat(elFDec.value);
+  var res = document.getElementById("fresult");
+
+  if(isNaN(fd) || fd <= 0){ res.classList.remove("show"); return; }
+
+  // Horas voadas dos horimetros
+  var d = parseFloat(elHDec.value);
+  var p = parseFloat(elHPou.value);
+
+  if(isNaN(d) || isNaN(p) || p <= d){ res.classList.remove("show"); return; }
+
+  var diff10 = Math.round(p*10) - Math.round(d*10);
+  var diffH  = diff10 / 10;
+
+  var used = Math.round(diffH * TBM_GPH * 10) / 10;
+  var rem  = Math.max(0, Math.round((fd - used) * 10) / 10);
+  var autoH = rem / TBM_GPH;
+  var aHH   = Math.floor(autoH);
+  var aMM   = Math.round((autoH - aHH) * 60);
+
+  document.getElementById("fUsed").textContent  = used.toFixed(1);
+  document.getElementById("fUsedL").textContent = (used * GL).toFixed(1);
+  document.getElementById("fRemV").textContent  = rem.toFixed(1);
+  document.getElementById("fRemL").textContent  = (rem * GL).toFixed(1);
+  document.getElementById("fAuto").textContent  = aHH + "h " + pad(aMM) + "min";
+  res.classList.add("show");
+}
+
+elFDec.addEventListener("input", calcCombust);
+
+// ─── CAMERA (input file nativo — foco perfeito no iOS/Android) ──────────
+var camTgt = null;
+
+function openCam(tgt){
+  camTgt = tgt;
+  document.getElementById("camModal").classList.add("open");
+  document.getElementById("camCvs").style.display  = "none";
+  document.getElementById("camPreview").style.display = "block";
+  document.getElementById("mb1").style.display     = "flex";
+  document.getElementById("mb2").style.display     = "none";
+  document.getElementById("obox").style.display    = "none";
+  document.getElementById("oSt").innerHTML         = "";
+}
+
+function closeCam(){
+  document.getElementById("camModal").classList.remove("open");
+}
+
+function doCapture(){
+  // Abre a câmera nativa via input file — foco automático do SO
+  document.getElementById("camFile").click();
+}
+
+// Quando usuário tira/escolhe a foto
+document.getElementById("camFile").addEventListener("change", function(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var img = new Image();
+    img.onload = function(){
+      var c = document.getElementById("camCvs");
+      // Manter proporção mas limitar tamanho para a IA
+      var maxW = 1600, maxH = 1200;
+      var w = img.width, h = img.height;
+      if(w > maxW){ h = Math.round(h*maxW/w); w = maxW; }
+      if(h > maxH){ w = Math.round(w*maxH/h); h = maxH; }
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      c.style.display = "block";
+      document.getElementById("camPreview").style.display = "none";
+      document.getElementById("mb1").style.display = "none";
+      document.getElementById("mb2").style.display = "flex";
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  // Reset para permitir nova foto com mesmo arquivo
+  e.target.value = "";
+});
+
+function doRetake(){
+  document.getElementById("camCvs").style.display    = "none";
+  document.getElementById("camPreview").style.display = "block";
+  document.getElementById("mb1").style.display        = "flex";
+  document.getElementById("mb2").style.display        = "none";
+  document.getElementById("obox").style.display       = "none";
+}
+
+async function doAnalyze(){
+  var c   = document.getElementById("camCvs");
+  var ost = document.getElementById("oSt");
+  var ov  = document.getElementById("oVal");
+  document.getElementById("obox").style.display = "block";
+  ov.value = "";
+  ost.innerHTML = "<span class=\"spin\"></span> Analisando com IA...";
+
+  // Usar resolucao maxima do canvas para IA reconhecer melhor
+  var b64 = c.toDataURL("image/jpeg", 0.95).split(",")[1];
+
+  try{
+    var resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 100,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: "image/jpeg", data: b64 } },
+            { type: "text",  text: "Esta e uma foto do horimetro de uma aeronave. O horimetro e um contador de horas totais do motor, geralmente mostra numeros como 1234.5 ou 300.0 ou 1500.2. Pode estar em display digital ou analogico. Leia com cuidado todos os digitos visiveis incluindo a parte decimal apos o ponto. Responda SOMENTE com o numero, exemplo: 1234.5 ou 300.0. Nada mais." }
+          ]
+        }]
+      })
+    });
+    var data = await resp.json();
+    var txt  = (data.content || []).map(function(x){ return x.text || ""; }).join("").trim();
+    var m    = txt.match(/\d+\.?\d*/);
+    if(m){
+      ov.value = m[0];
+      ost.innerHTML = "<span style=\"color:var(--ok)\">&#10003; Detectado &mdash; confirme ou edite</span>";
+    } else {
+      ov.value = "";
+      ost.innerHTML = "<span style=\"color:var(--warn)\">&#9888; Nao reconhecido. Digite manualmente.</span>";
+    }
+  }catch(e){
+    ost.innerHTML = "<span style=\"color:var(--warn)\">&#9888; Falha na analise. Digite manualmente.</span>";
+  }
+}
+
+function doApply(){
+  var v = parseFloat(document.getElementById("oVal").value);
+  if(isNaN(v)){ showToast("Sem valor valido", true); return; }
+  if(camTgt === "dec") elHDec.value = v;
+  else                 elHPou.value = v;
+  calcHoro();
+  closeCam();
+  showToast("Valor " + v + " aplicado!");
+}
+
+document.getElementById("btnCamDec").addEventListener("click", function(){ openCam("dec"); });
+document.getElementById("btnCamPou").addEventListener("click", function(){ openCam("pou"); });
+document.getElementById("btnClose").addEventListener("click",  closeCam);
+document.getElementById("btnCapture").addEventListener("click", doCapture);
+document.getElementById("btnRetake").addEventListener("click",  doRetake);
+document.getElementById("btnAnalyze").addEventListener("click", doAnalyze);
+document.getElementById("btnApply").addEventListener("click",   doApply);
+
+// ─── AEROPORTOS ONLINE ────────────────────────────────────
+var AP = [], AP_READY = false;
+
+function setApSt(msg, ok){
+  var el = document.getElementById("apSt");
+  if(el){ el.textContent = msg; el.style.color = ok ? "var(--ok)" : "var(--warn)"; }
+}
+
+function parseCSV(csv){
+  var lines = csv.split("\n"), out = [];
+  if(lines.length < 2) return out;
+  var h   = lines[0].split(",").map(function(x){ return x.replace(/"/g,"").trim(); });
+  var iG  = h.indexOf("gps_code"),    iI = h.indexOf("ident");
+  var iN  = h.indexOf("name"),        iM = h.indexOf("municipality");
+  var iR  = h.indexOf("iso_region"),  iC = h.indexOf("iso_country");
+  var iLa = h.indexOf("latitude_deg"),iLo= h.indexOf("longitude_deg");
+  for(var i = 1; i < lines.length; i++){
+    var line = lines[i]; if(!line) continue;
+    var cols = [], cur = "", inQ = false;
+    for(var c = 0; c < line.length; c++){
+      var ch = line[c];
+      if(ch === '"'){ inQ = !inQ; }
+      else if(ch === "," && !inQ){ cols.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    cols.push(cur);
+    if((cols[iC]||"").replace(/"/g,"") !== "BR") continue;
+    var code = ((cols[iG]||"").replace(/"/g,"").trim()) || ((cols[iI]||"").replace(/"/g,"").trim());
+    if(!code || code.length < 2 || code.length > 4) continue;
+    var la = parseFloat((cols[iLa]||"").replace(/"/g,""));
+    var lo = parseFloat((cols[iLo]||"").replace(/"/g,""));
+    if(isNaN(la) || isNaN(lo)) continue;
+    out.push({
+      code: code,
+      name: (cols[iN]||"").replace(/"/g,"").trim(),
+      city: (cols[iM]||"").replace(/"/g,"").trim(),
+      state: (cols[iR]||"").replace(/"/g,"").replace("BR-","").trim(),
+      lat: la, lon: lo
+    });
+  }
+  return out;
+}
+
+function loadAP(){
+  setApSt("Carregando...", true);
+  var urls = [
+    "https://raw.githubusercontent.com/davidmegginson/ourairports-data/main/airports.csv",
+    "https://davidmegginson.github.io/ourairports-data/airports.csv"
+  ];
+  var idx = 0;
+  function next(){
+    if(idx >= urls.length){ setApSt("Sem conexao", false); return; }
+    var url = urls[idx++];
+    var ctrl = new AbortController();
+    var tid  = setTimeout(function(){ ctrl.abort(); next(); }, 15000);
+    fetch(url, { signal: ctrl.signal })
+    .then(function(r){ return r.text(); })
+    .then(function(csv){
+      clearTimeout(tid);
+      var list = parseCSV(csv);
+      if(list.length > 100){
+        AP = list; AP_READY = true;
+        setApSt("✓ " + AP.length + " aerodr.", true);
+        setTimeout(function(){ setApSt("", true); }, 4000);
+      } else { next(); }
+    })
+    .catch(function(){ clearTimeout(tid); next(); });
+  }
+  next();
+}
+
+window.addEventListener("load", loadAP);
+
+// ─── BUSCA ICAO ───────────────────────────────────────────
+var selDep = null, selArr = null;
+
+function searchAP(q){
+  if(!AP_READY || !q || q.length < 2) return [];
+  var nq = norm(q), exact=[], sC=[], sN=[], rest=[];
+  for(var i = 0; i < AP.length; i++){
+    var a = AP[i], nc = norm(a.code), nn = norm(a.name), nci = norm(a.city);
+    if(nc === nq)                              exact.push(a);
+    else if(nc.indexOf(nq) === 0)              sC.push(a);
+    else if(nci.indexOf(nq)===0||nn.indexOf(nq)===0) sN.push(a);
+    else if(nci.indexOf(nq)>=0||nn.indexOf(nq)>=0||norm(a.state)===nq) rest.push(a);
+  }
+  return exact.concat(sC).concat(sN).concat(rest).slice(0,15);
+}
+
+function renderDrop(type, list){
+  var el = document.getElementById(type==="dep"?"dDep":"dArr");
+  if(!list.length){ el.innerHTML=""; el.classList.remove("open"); return; }
+  el.innerHTML = list.map(function(a){
+    return "<div class=\"di\" onclick=\"pickAP(\'"+type+"\',\'"+a.code+"\')\">"
+      +"<div class=\"di-code\">"+a.code+"</div>"
+      +"<div class=\"di-name\">"+a.name+"</div>"
+      +"<div class=\"di-loc\">"+a.city+(a.state?", "+a.state:"")+"</div></div>";
+  }).join("");
+  el.classList.add("open");
+}
+
+function pickAP(type, code){
+  var a = null;
+  for(var i=0;i<AP.length;i++){ if(AP[i].code===code){a=AP[i];break;} }
+  if(!a) return;
+  document.getElementById(type==="dep"?"iDep":"iArr").value = a.code;
+  document.getElementById(type==="dep"?"cDep":"cArr").textContent = a.city+(a.state?", "+a.state:"");
+  var dr = document.getElementById(type==="dep"?"dDep":"dArr");
+  dr.innerHTML=""; dr.classList.remove("open");
+  if(type==="dep") selDep=a; else selArr=a;
+  updDist();
+}
+
+function onIcao(type){
+  var val  = document.getElementById(type==="dep"?"iDep":"iArr").value.trim();
+  var city = document.getElementById(type==="dep"?"cDep":"cArr");
+  var dr   = document.getElementById(type==="dep"?"dDep":"dArr");
+  if(type==="dep") selDep=null; else selArr=null;
+  city.textContent="\u00a0"; updDist();
+  if(!val){ dr.innerHTML=""; dr.classList.remove("open"); return; }
+  var up = val.toUpperCase();
+  if(up.length === 4){
+    for(var i=0;i<AP.length;i++){ if(AP[i].code===up){ pickAP(type,up); return; } }
+  }
+  if(!AP_READY){
+    dr.innerHTML="<div class=\"di-msg\">Carregando aerodromos...</div>";
+    dr.classList.add("open"); return;
+  }
+  if(up.length >= 2) renderDrop(type, searchAP(up));
+  else { dr.innerHTML=""; dr.classList.remove("open"); }
+}
+
+function updDist(){
+  var box = document.getElementById("distBox");
+  if(selDep && selArr && selDep.code !== selArr.code){
+    document.getElementById("dNM").textContent = hav(selDep.lat,selDep.lon,selArr.lat,selArr.lon).toLocaleString("pt-BR");
+    box.classList.add("show");
+  } else {
+    box.classList.remove("show");
+  }
+}
+
+document.getElementById("iDep").addEventListener("input", function(){ onIcao("dep"); });
+document.getElementById("iArr").addEventListener("input", function(){ onIcao("arr"); });
+document.addEventListener("click", function(e){
+  if(!e.target.closest(".ig")){
+    document.querySelectorAll(".drop").forEach(function(d){ d.innerHTML=""; d.classList.remove("open"); });
+  }
+});
+</script>
+</body>
+</html>
