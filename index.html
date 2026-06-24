@@ -324,7 +324,7 @@ function renderHist(hist){
 
 function usarComoInicial(v){
   const inp = document.getElementById('hIni');
-  inp.value = parseFloat(String(v).replace(',','.')).toFixed(2);
+  inp.value = parseFloat(String(v).replace('.'.'.')).toFixed(1);
   inp.classList.add('prefilled');
   document.getElementById('hFim').value='';
   recalc();
