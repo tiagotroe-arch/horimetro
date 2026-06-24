@@ -139,7 +139,6 @@ footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;c
 
 <header>
   <div>
-    <div class="eye">PAINEL DE VOO</div>
     <h1>PP-IDC</h1>
   </div>
   <div class="tag">TBM900 · HORÍMETRO · ROTA · COMBUSTÍVEL</div>
@@ -226,43 +225,7 @@ footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;c
         <div class="fl">Remanescente após pouso</div>
         <div class="fv muted" id="fRemGal">—<span class="fu">gal</span></div>
         <div class="fsub" id="fRemLit">—</div>
-      </div>
-    </div>
-    <p class="sub" id="fSub">Preencha os campos acima e os horímetros de decolagem e pouso para calcular.</p>
-  </section>
-  <!-- ====== ROTAER / DECEA ====== -->
-  <section class="card col-full">
-    <div class="cardhead"><h2>BASE DE AERÓDROMOS — ROTAER (DECEA)</h2><span class="n">04</span></div>
-
-    <p class="sub" style="margin-top:0;margin-bottom:10px;">
-      Opcional: informe sua apiKey/apiPass do DECEA (API-AISWEB) para usar o ROTAER oficial como fonte
-      primária. Sem isso, o app usa automaticamente o OurAirports (GitHub) e, se necessário, a lista interna.
-      As chaves ficam salvas só neste navegador (localStorage), nunca são enviadas a nenhum servidor além do DECEA.
-    </p>
-
-    <div class="row2">
-      <div>
-        <label for="rotaerKey">API Key (DECEA)</label>
-        <input type="text" id="rotaerKey" placeholder="cole sua apiKey" autocomplete="off">
-      </div>
-      <div>
-        <label for="rotaerPass">API Pass (DECEA)</label>
-        <input type="text" id="rotaerPass" placeholder="cole sua apiPass" autocomplete="off">
-      </div>
-    </div>
-
-    <button class="btn" id="btnRotaer" onclick="salvarRotaerCreds()">Salvar e atualizar base</button>
-    <button class="btn" id="btnRotaerClear" onclick="limparRotaerCreds()" style="margin-left:8px;">Remover chaves</button>
-
-    <p class="sub" id="rotaerSub" style="margin-top:10px;">Nenhuma chave configurada — usando OurAirports.</p>
-    <p class="sub" style="margin-top:4px;">
-      Solicite sua chave gratuita em
-      <a href="https://aisweb.decea.mil.br/?i=publicacoes&p=api" target="_blank" rel="noopener" style="color:var(--amber);">aisweb.decea.mil.br</a>.
-    </p>
-  </section>
-
 </div>
-
 <footer>distância em linha reta · não considera rotas IFR/aerovias</footer>
 </div>
 
