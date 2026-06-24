@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Voo – TBM900</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0f16;--panel:#121a24;--edge:#1d2733;
+  --amber:#ff9d2e;--adim:#8a5a20;--green:#5fe39d;--blue:#5fafe3;
+  --ink:#e7ecf2;--dim:#8a96a3;--danger:#ff6b6b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:radial-gradient(1200px 600px at 50% -10%,#14202c,var(--bg) 60%);
+  color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;
+  min-height:100vh;padding:22px 14px 60px;
+}
+.wrap{max-width:980px;margin:0 auto;}
+
+/* header */
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+  padding-bottom:14px;border-bottom:1px solid var(--edge);margin-bottom:20px;}
+.eye{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;
+  color:var(--amber);text-transform:uppercase;margin-bottom:4px;}
+h1{font-size:22px;font-weight:700;letter-spacing:-.02em;}
+.tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);text-align:right;line-height:1.6;}
+
+/* grid layout */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.col-full{grid-column:1/-1;}
+@media(max-width:640px){.grid{grid-template-columns:1fr;}}
+
+/* cards */
+.card{background:linear-gradient(180deg,var(--panel),#0e1620);
+  border:1px solid var(--edge);border-radius:13px;padding:18px;}
+.cardhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cardhead h2{font-size:13.5px;font-weight:600;}
+.cardhead .n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);}
+
+/* histórico */
+.hlist{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.hitem{background:#060a0f;border:1px solid var(--edge);border-radius:9px;
+  padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.hitem.top{border-color:var(--adim);background:rgba(255,157,46,.04);}
+.hval{font-family:'JetBrains Mono',monospace;font-size:22px;color:var(--amber);font-weight:700;}
+.hitem.top .hval{font-size:26px;text-shadow:0 0 10px rgba(255,157,46,.25);}
+.hmeta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.hlbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
+.hitem.top .hlbl{color:var(--amber);opacity:.8;}
+.hdate{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--dim);}
+.husebtn{background:transparent;border:1px solid var(--edge);color:var(--dim);
+  font-family:'JetBrains Mono',monospace;font-size:10px;padding:5px 9px;border-radius:6px;
+  cursor:pointer;transition:all .15s;white-space:nowrap;}
+.husebtn:hover{border-color:var(--adim);color:var(--amber);}
+.hempty{font-family:'JetBrains Mono',monospace;font-size:11px;color:#39424d;
+  background:#060a0f;border:1px dashed var(--edge);border-radius:9px;padding:10px 12px;margin-bottom:14px;}
+
+/* inputs */
+label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+@media(max-width:380px){.row2{grid-template-columns:1fr;}}
+.field{position:relative;}
+input[type=text],input[type=number]{
+  width:100%;background:#0a1119;border:1px solid var(--edge);color:var(--ink);
+  font-family:'JetBrains Mono',monospace;font-size:15px;padding:9px 10px;
+  border-radius:7px;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+input::placeholder{color:#4a5663;}
+input:focus{border-color:var(--adim);box-shadow:0 0 0 3px rgba(255,157,46,.1);}
+input.icao{text-transform:uppercase;letter-spacing:.12em;}
+input.prefilled{border-color:rgba(255,157,46,.4);}
+
+/* readout */
+.readout{margin-top:12px;background:#060a0f;border:1px solid var(--edge);border-radius:9px;
+  padding:13px 15px;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.rl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);}
+.rv{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;
+  color:var(--green);text-shadow:0 0 14px rgba(95,227,157,.25);letter-spacing:.02em;}
+.rv.sm{font-size:17px;}
+.rv.muted{color:#39424d;text-shadow:none;}
+.rv.err{color:var(--danger);text-shadow:none;font-size:15px;}
+.unit{font-size:12px;color:var(--dim);margin-left:4px;}
+.sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:7px;min-height:13px;}
+
+/* autocomplete */
+.suggest{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#0d1620;
+  border:1px solid var(--edge);border-radius:8px;overflow:hidden;z-index:40;
+  box-shadow:0 14px 30px -12px rgba(0,0,0,.9);max-height:230px;overflow-y:auto;}
+.si{padding:8px 10px;cursor:pointer;border-bottom:1px solid #161f2a;display:flex;flex-direction:column;gap:2px;}
+.si:last-child{border-bottom:none;}
+.si:hover{background:#16202c;}
+.sc{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);}
+.sn{font-size:11.5px;color:var(--ink);}
+.sk{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);}
+.sempty{padding:9px 10px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim);}
+
+/* botão */
+.btn{appearance:none;border:1px solid var(--adim);background:linear-gradient(180deg,#2a1c0d,#1c1308);
+  color:var(--amber);font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.1em;
+  text-transform:uppercase;padding:9px 15px;border-radius:7px;cursor:pointer;transition:filter .15s;margin-top:4px;}
+.btn:hover{filter:brightness(1.2);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* db status bar */
+.dbbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);
+  background:#060a0f;border:1px solid var(--edge);border-radius:7px;padding:8px 11px;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:#39424d;transition:background .3s;}
+.dot.ok{background:var(--green);}
+.dot.spin{background:var(--amber);animation:blink 1s infinite;}
+.dot.err{background:var(--danger);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* combustível */
+.fuelgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+@media(max-width:420px){.fuelgrid{grid-template-columns:1fr 1fr;}}
+.fuelsect{margin-top:12px;}
+.fueltitle{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:8px;padding-top:10px;border-top:1px solid var(--edge);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+.fblock{background:#060a0f;border:1px solid var(--edge);border-radius:8px;padding:10px 12px;}
+.fblock .fl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
+.fblock .fv{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:var(--blue);}
+.fblock .fv.warn{color:var(--amber);}
+.fblock .fv.danger{color:var(--danger);}
+.fblock .fv.muted{color:#39424d;}
+.fblock .fu{font-size:11px;color:var(--dim);margin-left:3px;}
+.fblock .fsub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:3px;}
+
+footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:#3d4753;margin-top:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>PP-IDC</h1>
+  </div>
+  <div class="tag">TBM900 · HORÍMETRO · ROTA · COMBUSTÍVEL</div>
+</header>
+
+<div class="grid">
+
+  <!-- ====== HORÍMETRO ====== -->
+  <section class="card">
+    <div class="cardhead"><h2>HORÍMETRO</h2><span class="n">01</span></div>
+
+    <div class="hlist" id="histBox"></div>
+
+    <div class="row2">
+      <div>
+        <label for="hIni">Decolagem</label>
+        <input type="number" id="hIni" placeholder="0000.0" step="0.01" inputmode="decimal">
+      </div>
+      <div>
+        <label for="hFim">Pouso</label>
+        <input type="number" id="hFim" placeholder="0000.0" step="0.01" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="readout">
+      <div><div class="rl">Tempo em voo</div><div class="rv muted" id="rTempo">—:—</div></div>
+      <div><div class="rl">Decimal</div><div class="rv muted sm" id="rDec">— h</div></div>
+    </div>
+    <p class="sub" id="hSub">Preencha decolagem e pouso para calcular.</p>
+  </section>
+
+  <!-- ====== DISTÂNCIA ====== -->
+  <section class="card">
+    <div class="cardhead"><h2>ROTA</h2><span class="n">02</span></div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="icaoA">Origem</label>
+        <input type="text" class="icao" id="icaoA" placeholder="ICAO" autocomplete="off" maxlength="6">
+        <div class="suggest" id="sugA" style="display:none;"></div>
+      </div>
+      <div class="field">
+        <label for="icaoB">Destino</label>
+        <input type="text" class="icao" id="icaoB" placeholder="ICAO" autocomplete="off" maxlength="6">
+        <div class="suggest" id="sugB" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div class="readout">
+      <div><div class="rl">Distância</div><div class="rv muted" id="rDist">—<span class="unit">NM</span></div></div>
+    </div>
+    <p class="sub" id="dSub" style="margin-top:4px;"></p>
+    <p class="sub" id="dInfo" style="margin-top:0;"></p>
+  </section>
+
+  <!-- ====== COMBUSTÍVEL TBM900 ====== -->
+  <section class="card col-full">
+    <div class="cardhead"><h2>CONSUMO/TBM900</h2><span class="n">03</span></div>
+
+    <div class="row2">
+      <div>
+        <label for="fuelIni">Combustível na decolagem</label>
+        <input type="number" id="fuelIni" placeholder="ex: 220" step="1" inputmode="decimal" oninput="calcFuel()">
+      </div>
+      <div>
+        <label for="fuelFlow">Consumo médio (GPH)</label>
+        <input type="number" id="fuelFlow" value="60" step="0.5" inputmode="decimal" oninput="calcFuel()">
+      </div>
+    </div>
+
+    <p class="fueltitle">Resultado da etapa</p>
+    <div class="frow">
+      <div class="fblock">
+        <div class="fl">Capacidade total</div>
+        <div class="fv" style="color:var(--dim)">292<span class="fu">gal US</span></div>
+        <div class="fsub">${(292 * 3.78541).toFixed(0)} litros</div>
+      </div>
+      <div class="fblock">
+        <div class="fl">Combustível na decolagem</div>
+        <div class="fv" id="fIniGal" style="color:var(--dim)">—<span class="fu">gal US</span></div>
+        <div class="fsub" id="fIniLit">—</div>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fblock">
+        <div class="fl">Consumo na etapa</div>
+        <div class="fv muted" id="fConsumoGal">—<span class="fu">gal</span></div>
+        <div class="fsub" id="fConsumoLit">—</div>
+      </div>
+      <div class="fblock">
+        <div class="fl">Remanescente após pouso</div>
+        <div class="fv muted" id="fRemGal">—<span class="fu">gal</span></div>
+        <div class="fsub" id="fRemLit">—</div>
+      </div>
+</div>
+
+</div>
+
+<script>
+const GAL_TO_LIT = 3.78541;
+
+/* =====================================================
+   PERSISTÊNCIA (localStorage)
+   ===================================================== */
+async function stGet(key){
+  try{ return localStorage.getItem(key); }catch(e){ return null; }
+}
+async function stSet(key, value){
+  try{ localStorage.setItem(key, value); return true; }catch(e){ return null; }
+}
+
+/* =====================================================
+   HISTÓRICO DE HORÍMETRO
+   ===================================================== */
+const HIST_KEY = 'horimetro:hist';
+
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+async function carregarHist(){
+  let hist = [];
+  try{
+    const raw = await stGet(HIST_KEY);
+    if(raw) hist = JSON.parse(raw);
+  }catch(e){ hist = []; }
+  renderHist(hist);
+}
+
+async function pushHist(v){
+  let hist = [];
+  try{
+    const raw = await stGet(HIST_KEY);
+    if(raw) hist = JSON.parse(raw);
+  }catch(e){ hist = []; }
+
+  hist = hist.filter(h => parseFloat(h.v) !== parseFloat(v));
+  hist.unshift({v, d:new Date().toISOString()});
+  hist = hist.slice(0,1);
+
+  try{ await stSet(HIST_KEY, JSON.stringify(hist)); }catch(e){}
+  renderHist(hist);
+}
+
+function renderHist(hist){
+  const box = document.getElementById('histBox');
+  if(!hist || !hist.length){
+    box.innerHTML = '<div class="hempty">Nenhum registro ainda — preencha o pouso para salvar.</div>';
+    return;
+  }
+  const h = hist[0];
+  box.innerHTML = `
+    <div class="hitem top">
+      <div>
+        <div class="hlbl">Próxima decolagem</div>
+        <div class="hval">${parseFloat(h.v).toFixed(1)}</div>
+        <div class="hdate">${fmtDate(h.d)}</div>
+      </div>
+      <button class="husebtn" onclick="usarComoInicial(${h.v})">Usar como decolagem</button>
+    </div>
+  `;
+}
+
+function usarComoInicial(v){
+  const inp = document.getElementById('hIni');
+  inp.value = v;
+  inp.classList.add('prefilled');
+  document.getElementById('hFim').value='';
+  recalc();
+}
+
+/* =====================================================
+   CÁLCULO DE HORÍMETRO
+   ===================================================== */
+let saveTimer = null;
+
+function recalc(){
+  const ini = parseFloat(document.getElementById('hIni').value);
+  const fim = parseFloat(document.getElementById('hFim').value);
+  const rT = document.getElementById('rTempo');
+  const rD = document.getElementById('rDec');
+  const sub = document.getElementById('hSub');
+
+  if(isNaN(ini)||isNaN(fim)){
+    rT.textContent='—:—'; rT.className='rv muted';
+    rD.textContent='— h'; rD.className='rv muted sm';
+    calcFuel(); return;
+  }
+  const diff = fim - ini;
+  if(diff < 0){
+    rT.textContent='—:—'; rT.className='rv muted';
+    rD.textContent='—'; rD.className='rv muted sm';
+    sub.textContent='Pouso não pode ser menor que a decolagem.';
+    sub.style.color='var(--danger)'; calcFuel(); return;
+  }
+  const totalMin = Math.round(diff*60);
+  const h = Math.floor(totalMin/60), m = totalMin%60;
+  rT.textContent=`${h}h${String(m).padStart(2,'0')}`; rT.className='rv';
+  rD.textContent=`${diff.toFixed(1)} h`; rD.className='rv sm';
+  sub.textContent=`Decolagem ${ini.toFixed(1)} → Pouso ${fim.toFixed(1)}`; sub.style.color='';
+  calcFuel();
+}
+
+document.getElementById('hIni').addEventListener('input', recalc);
+document.getElementById('hFim').addEventListener('input', ()=>{
+  recalc();
+  const fim = parseFloat(document.getElementById('hFim').value);
+  if(!isNaN(fim)){
+    if(saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{ pushHist(fim); }, 700);
+  }
+});
+document.getElementById('hFim').addEventListener('blur', ()=>{
+  if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
+  const fim = parseFloat(document.getElementById('hFim').value);
+  if(!isNaN(fim)) pushHist(fim);
+});
+
+/* =====================================================
+   CÁLCULO DE COMBUSTÍVEL
+   ===================================================== */
+function calcFuel(){
+  const ini  = parseFloat(document.getElementById('hIni').value);
+  const fim  = parseFloat(document.getElementById('hFim').value);
+  const fIni = parseFloat(document.getElementById('fuelIni').value);
+  const gph  = parseFloat(document.getElementById('fuelFlow').value);
+
+  const cG = document.getElementById('fConsumoGal');
+  const cL = document.getElementById('fConsumoLit');
+  const rG = document.getElementById('fRemGal');
+  const rL = document.getElementById('fRemLit');
+  const fSub = document.getElementById('fSub');
+
+  const reset = ()=>{
+    cG.innerHTML='—<span class="fu">gal</span>'; cG.className='fv muted';
+    cL.textContent='—'; rG.innerHTML='—<span class="fu">gal</span>'; rG.className='fv muted'; rL.textContent='—';
+  };
+
+  if(isNaN(ini)||isNaN(fim)||fim<ini||isNaN(fIni)||isNaN(gph)||gph<=0){ reset(); return; }
+
+  const diff = fim - ini;          // horas decimais do voo
+  const consumo = diff * gph;      // galões consumidos
+  const rem = fIni - consumo;      // remanescente
+
+  cG.innerHTML=`${consumo.toFixed(1)}<span class="fu">gal</span>`;
+  cG.className='fv';
+  cL.textContent=`${(consumo*GAL_TO_LIT).toFixed(1)} litros`;
+
+  if(rem < 0){
+    rG.innerHTML=`${Math.abs(rem).toFixed(1)}<span class="fu">gal a menos!</span>`;
+    rG.className='fv danger';
+    rL.textContent='COMBUSTÍVEL INSUFICIENTE';
+    fSub.textContent='⚠ Combustível insuficiente para essa etapa.';
+    fSub.style.color='var(--danger)';
+  } else {
+    rG.innerHTML=`${rem.toFixed(1)}<span class="fu">gal</span>`;
+    rL.textContent=`${(rem*GAL_TO_LIT).toFixed(1)} litros`;
+    if(rem < 30){
+      rG.className='fv danger';
+      fSub.textContent='Remanescente baixo — verifique reserva.';
+      fSub.style.color='var(--danger)';
+    } else if(rem < 60){
+      rG.className='fv warn';
+      fSub.textContent='Remanescente moderado — atenção à reserva.';
+      fSub.style.color='var(--amber)';
+    } else {
+      rG.className='fv';
+      fSub.textContent=`Consumo calculado com ${gph} GPH por ${diff.toFixed(1)} h de voo.`;
+      fSub.style.color='';
+    }
+  }
+}
+
+/* =====================================================
+   BASE DE AERÓDROMOS — ROTAER (DECEA) + GitHub (fallback)
+   ===================================================== */
+let APS = [];
+const CACHE_KEY = 'aero:v4';
+const ROTAER_CACHE_KEY = 'aero:rotaer:v1';
+const ROTAER_CREDS_KEY = 'rotaer:creds';
+const CACHE_AGE = 30*24*60*60*1000; // 30 dias
+
+function setDb(msg, state){
+  document.getElementById('dbDot').className='dot '+state;
+  document.getElementById('dbTxt').textContent=msg;
+}
+
+function setRotaerSub(msg, color){
+  const el = document.getElementById('rotaerSub');
+  el.textContent = msg;
+  el.style.color = color || '';
+}
+
+async function getRotaerCreds(){
+  try{
+    const raw = await stGet(ROTAER_CREDS_KEY);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    if(obj && obj.key && obj.pass) return obj;
+  }catch(e){}
+  return null;
+}
+
+async function salvarRotaerCreds(){
+  const key = document.getElementById('rotaerKey').value.trim();
+  const pass = document.getElementById('rotaerPass').value.trim();
+  if(!key||!pass){
+    setRotaerSub('Preencha apiKey e apiPass para salvar.', 'var(--danger)');
+    return;
+  }
+  try{ await stSet(ROTAER_CREDS_KEY, JSON.stringify({key,pass})); }catch(e){}
+  setRotaerSub('Chave salva — atualizando base via ROTAER…', '');
+  await loadBase(true);
+}
+
+async function limparRotaerCreds(){
+  try{ localStorage.removeItem(ROTAER_CREDS_KEY); }catch(e){}
+  try{ localStorage.removeItem(ROTAER_CACHE_KEY); }catch(e){}
+  document.getElementById('rotaerKey').value='';
+  document.getElementById('rotaerPass').value='';
+  setRotaerSub('Chave removida — usando OurAirports.', '');
+  await loadBase(true);
+}
+
+function parseCSV(txt){
+  const lines = txt.split('\n');
+  if(lines.length<2) return [];
+  const header = lines[0].split(',').map(h=>h.replace(/"/g,'').trim());
+  const idx={};
+  header.forEach((h,i)=>idx[h]=i);
+  const need=['ident','type','name','latitude_deg','longitude_deg','iso_country','municipality'];
+  if(need.some(k=>!(k in idx))) return [];
+
+  const re4=/^[A-Z0-9]{4}$/;
+  const result=[], seen=new Set();
+
+  for(let i=1;i<lines.length;i++){
+    const raw=lines[i]; if(!raw.trim()) continue;
+    // parse csv respeitando aspas
+    const cols=[]; let field='',inQ=false;
+    for(let c=0;c<raw.length;c++){
+      const ch=raw[c];
+      if(ch==='"'){inQ=!inQ;}
+      else if(ch===','&&!inQ){cols.push(field);field='';}
+      else field+=ch;
+    }
+    cols.push(field);
+
+    if((cols[idx.iso_country]||'').trim()!=='BR') continue;
+    if((cols[idx.type]||'').trim()==='closed') continue;
+    const lat=parseFloat(cols[idx.latitude_deg]);
+    const lon=parseFloat(cols[idx.longitude_deg]);
+    if(isNaN(lat)||isNaN(lon)) continue;
+
+    let code=(cols[idx.ident]||'').replace(/"/g,'').trim().toUpperCase();
+    if(!re4.test(code)){
+      code=(cols[idx.gps_code]||'').replace(/"/g,'').trim().toUpperCase();
+    }
+    if(!re4.test(code)) continue;
+    if(seen.has(code)) continue;
+    seen.add(code);
+
+    result.push({icao:code,
+      name:(cols[idx.name]||code).replace(/"/g,'').trim(),
+      city:(cols[idx.municipality]||'').replace(/"/g,'').trim(),
+      lat,lon});
+  }
+  return result;
+}
+
+/* ---- ROTAER (DECEA) ----
+   Endpoint: https://api.decea.mil.br/aisweb/?apiKey=...&apiPass=...&area=rotaer
+   Retorno em XML. O formato exato de paginação/parâmetros pode variar —
+   ajuste GETALL_PARAM abaixo conforme a documentação que acompanha sua chave
+   (Postman: https://documenter.getpostman.com/view/7201070/SzKQyg3H).
+   Esta função tenta alguns formatos comuns e cai no fallback se nenhum funcionar. */
+function parseRotaerXML(xmlText){
+  let doc;
+  try{
+    doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+    if(doc.querySelector('parsererror')) return [];
+  }catch(e){ return []; }
+
+  // tenta achar nós de aeródromo por nomes de tag comuns
+  const candidates = ['item','aerodromo','airport','rotaer','localidade'];
+  let nodes = [];
+  for(const tag of candidates){
+    nodes = Array.from(doc.getElementsByTagName(tag));
+    if(nodes.length) break;
+  }
+  if(!nodes.length) return [];
+
+  const getText = (node, names) => {
+    for(const n of names){
+      const el = node.getElementsByTagName(n)[0];
+      if(el && el.textContent && el.textContent.trim()) return el.textContent.trim();
+    }
+    return '';
+  };
+
+  const result=[], seen=new Set();
+  const re4=/^[A-Z0-9]{4}$/;
+
+  for(const node of nodes){
+    const code = getText(node, ['icaoCode','icao_code','icao','code','indicativo']).toUpperCase();
+    if(!re4.test(code) || seen.has(code)) continue;
+
+    const latRaw = getText(node, ['lat','latitude','geo_lat']);
+    const lonRaw = getText(node, ['lng','lon','longitude','geo_lng','long']);
+    const lat = parseFloat(latRaw.replace(',','.'));
+    const lon = parseFloat(lonRaw.replace(',','.'));
+    if(isNaN(lat)||isNaN(lon)) continue;
+
+    seen.add(code);
+    result.push({
+      icao: code,
+      name: getText(node, ['name','nome','localidade']) || code,
+      city: getText(node, ['city','municipio','cidade']) || '',
+      lat, lon
+    });
+  }
+  return result;
+}
+
+async function fetchRotaer(creds){
+  const base = 'https://api.decea.mil.br/aisweb/';
+  // tenta variações comuns de "listar todos" — a doc oficial confirma o nome exato do parâmetro
+  const attempts = [
+    `${base}?apiKey=${encodeURIComponent(creds.key)}&apiPass=${encodeURIComponent(creds.pass)}&area=rotaer&country=BR`,
+    `${base}?apiKey=${encodeURIComponent(creds.key)}&apiPass=${encodeURIComponent(creds.pass)}&area=rotaer`,
+  ];
+  for(const url of attempts){
+    try{
+      const r = await fetch(url);
+      if(!r.ok) continue;
+      const txt = await r.text();
+      const lista = parseRotaerXML(txt);
+      if(lista.length > 20) return lista;
+    }catch(e){ /* tenta a próxima */ }
+  }
+  return null;
+}
+
+async function loadBase(forceRefresh){
+  // tenta cache (ROTAER tem prioridade sobre o cache do OurAirports)
+  if(!forceRefresh){
+    const cachedR = await stGet(ROTAER_CACHE_KEY);
+    if(cachedR){
+      try{
+        const obj = JSON.parse(cachedR);
+        if(Array.isArray(obj.list)&&obj.list.length>20){
+          APS = obj.list;
+          setDb(`${APS.length} aeródromos — ROTAER/DECEA (cache ${new Date(obj.ts).toLocaleDateString('pt-BR')})`, 'ok');
+          setRotaerSub(`Usando ROTAER (DECEA) como fonte primária — ${APS.length} aeródromos.`, 'var(--green)');
+          if(Date.now()-(obj.ts||0) < CACHE_AGE) return;
+        }
+      }catch(e){}
+    }
+  }
+
+  const creds = await getRotaerCreds();
+  if(creds){
+    document.getElementById('rotaerKey').value = creds.key;
+    document.getElementById('rotaerPass').value = creds.pass;
+    setDb('Consultando ROTAER (DECEA)…', 'spin');
+    try{
+      const listaR = await fetchRotaer(creds);
+      if(listaR && listaR.length){
+        APS = listaR;
+        setDb(`${APS.length} aeródromos — ROTAER/DECEA`, 'ok');
+        setRotaerSub(`Usando ROTAER (DECEA) como fonte primária — ${APS.length} aeródromos.`, 'var(--green)');
+        try{ await stSet(ROTAER_CACHE_KEY, JSON.stringify({ts:Date.now(),list:listaR})); }catch(e){}
+        return;
+      }
+      setRotaerSub('Não foi possível consultar o ROTAER agora (CORS, rede ou parâmetro incorreto) — usando OurAirports como alternativa.', 'var(--amber)');
+    }catch(e){
+      setRotaerSub('Erro ao consultar o ROTAER — usando OurAirports como alternativa.', 'var(--amber)');
+    }
+  }
+
+  // tenta cache do OurAirports
+  const cached = await stGet(CACHE_KEY);
+  if(cached){
+    try{
+      const obj = JSON.parse(cached);
+      if(Array.isArray(obj.list)&&obj.list.length>100){
+        APS = obj.list;
+        const age = Date.now()-(obj.ts||0);
+        setDb(`${APS.length} aeródromos (cache ${new Date(obj.ts).toLocaleDateString('pt-BR')})`, 'ok');
+        if(age < CACHE_AGE) return;
+        setDb(`${APS.length} aeródromos (atualizando em segundo plano…)`, 'ok');
+      }
+    }catch(e){}
+  }
+
+  // busca do GitHub
+  const urls=[
+    'https://davidmegginson.github.io/ourairports-data/airports.csv',
+    'https://raw.githubusercontent.com/davidmegginson/ourairports-data/main/airports.csv',
+  ];
+  let csv=null;
+  for(const url of urls){
+    try{ const r=await fetch(url); if(r.ok){csv=await r.text();break;} }catch(e){}
+  }
+
+  if(!csv){
+    APS = FALLBACK;
+    setDb(APS.length>0&&cached
+      ? `${APS.length} aeródromos (cache, sem conexão para atualizar)`
+      : `Sem conexão — ${FALLBACK.length} aeródromos internos disponíveis`, 'err');
+    return;
+  }
+
+  const lista = parseCSV(csv);
+  if(lista.length<50){ APS=FALLBACK; setDb(`Erro ao processar — ${FALLBACK.length} aeródromos internos`,'err'); return; }
+
+  APS = lista;
+  setDb(`${APS.length} aeródromos carregados — OurAirports`, 'ok');
+  try{ await stSet(CACHE_KEY, JSON.stringify({ts:Date.now(),list:lista})); }catch(e){}
+}
+
+/* =====================================================
+   AUTOCOMPLETE
+   ===================================================== */
+const sel={icaoA:null,icaoB:null};
+
+function buscar(t){
+  if(!t||!APS.length) return [];
+  const q=t.toLowerCase();
+  const ex=[],pre=[],nm=[];
+  for(const a of APS){
+    const ic=a.icao.toLowerCase();
+    if(ic===q) ex.push(a);
+    else if(ic.startsWith(q)) pre.push(a);
+    else if(a.name.toLowerCase().includes(q)||a.city.toLowerCase().includes(q)) nm.push(a);
+    if(ex.length+pre.length>=10) break;
+  }
+  return ex.concat(pre,nm).slice(0,8);
+}
+
+function setupAC(inpId, sugId){
+  const inp=document.getElementById(inpId);
+  const box=document.getElementById(sugId);
+
+  inp.addEventListener('input',()=>{
+    sel[inpId]=null;
+    const t=inp.value.trim();
+    if(!t){box.style.display='none';box.innerHTML='';return;}
+    const res=buscar(t);
+    if(!res.length){
+      box.innerHTML='<div class="sempty">Sem resultado — base carregando ou ICAO não encontrado.</div>';
+      box.style.display='block'; return;
+    }
+    box.innerHTML=res.map((a,i)=>`
+      <div class="si" data-i="${i}">
+        <span class="sc">${a.icao}</span>
+        <span class="sn">${a.name}</span>
+        <span class="sk">${a.city}</span>
+      </div>`).join('');
+    box.style.display='block';
+    box.querySelectorAll('.si').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const a=res[+el.dataset.i];
+        inp.value=a.icao; sel[inpId]=a;
+        box.style.display='none'; box.innerHTML='';
+        calcDist();
+      });
+    });
+  });
+  inp.addEventListener('focus',()=>{ if(inp.value.trim()&&box.innerHTML) box.style.display='block'; });
+  document.addEventListener('click',e=>{ if(!inp.contains(e.target)&&!box.contains(e.target)) box.style.display='none'; });
+}
+setupAC('icaoA','sugA');
+setupAC('icaoB','sugB');
+
+/* =====================================================
+   DISTÂNCIA
+   ===================================================== */
+function haversNM(la1,lo1,la2,lo2){
+  const R=3440.065,r=Math.PI/180;
+  const dla=(la2-la1)*r,dlo=(lo2-lo1)*r;
+  const a=Math.sin(dla/2)**2+Math.cos(la1*r)*Math.cos(la2*r)*Math.sin(dlo/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function resolveAP(inpId){
+  const v=document.getElementById(inpId).value.trim().toUpperCase();
+  if(sel[inpId]?.icao===v) return sel[inpId];
+  return APS.find(a=>a.icao===v) || FALLBACK.find(a=>a.icao===v) || null;
+}
+function calcDist(){
+  const sub=document.getElementById('dSub'), info=document.getElementById('dInfo');
+  const rD=document.getElementById('rDist');
+  const vA=document.getElementById('icaoA').value.trim();
+  const vB=document.getElementById('icaoB').value.trim();
+  if(!vA||!vB){
+    rD.innerHTML='—<span class="unit">NM</span>'; rD.className='rv muted';
+    sub.textContent=''; sub.style.color=''; info.textContent='';
+    return;
+  }
+  try{
+    const a=resolveAP('icaoA'), b=resolveAP('icaoB');
+    if(!a) throw new Error(`"${vA}" não encontrado.`);
+    if(!b) throw new Error(`"${vB}" não encontrado.`);
+    const nm=haversNM(a.lat,a.lon,b.lat,b.lon);
+    rD.innerHTML=`${nm.toFixed(1)}<span class="unit">NM</span>`; rD.className='rv';
+    sub.textContent=`${a.icao} → ${b.icao}`; sub.style.color='';
+    info.innerHTML=`<strong>${a.icao}</strong> ${a.name}${a.city?' · '+a.city:''}<br><strong>${b.icao}</strong> ${b.name}${b.city?' · '+b.city:''}`;
+  }catch(err){
+    rD.innerHTML='—<span class="unit">NM</span>'; rD.className='rv muted';
+    sub.textContent=err.message; sub.style.color='var(--danger)'; info.textContent='';
+  }
+}
+document.getElementById('icaoA').addEventListener('input', calcDist);
+document.getElementById('icaoB').addEventListener('input', calcDist);
+
+/* =====================================================
+   FALLBACK INTERNO
+   ===================================================== */
+const FALLBACK=[
+{icao:"SBGR",name:"Guarulhos Intl",city:"São Paulo, SP",lat:-23.431274,lon:-46.469954},
+{icao:"SBGL",name:"Galeão Intl",city:"Rio de Janeiro, RJ",lat:-22.809999,lon:-43.250557},
+{icao:"SBSP",name:"Congonhas",city:"São Paulo, SP",lat:-23.627657,lon:-46.654601},
+{icao:"SBRJ",name:"Santos Dumont",city:"Rio de Janeiro, RJ",lat:-22.910397,lon:-43.16282},
+{icao:"SBBR",name:"JK Intl",city:"Brasília, DF",lat:-15.869167,lon:-47.920834},
+{icao:"SBSV",name:"Dep. Luiz Eduardo Magalhães",city:"Salvador, BA",lat:-12.908611,lon:-38.322498},
+{icao:"SBPA",name:"Salgado Filho Intl",city:"Porto Alegre, RS",lat:-29.993984,lon:-51.167482},
+{icao:"SBKP",name:"Viracopos Intl",city:"Campinas, SP",lat:-23.007404,lon:-47.134502},
+{icao:"SBRF",name:"Guararapes Intl",city:"Recife, PE",lat:-8.12747,lon:-34.922961},
+{icao:"SBFI",name:"Cataratas Intl",city:"Foz do Iguaçu, PR",lat:-25.594167,lon:-54.489444},
+{icao:"SBFZ",name:"Pinto Martins Intl",city:"Fortaleza, CE",lat:-3.775833,lon:-38.532222},
+{icao:"SBCT",name:"Afonso Pena Intl",city:"Curitiba, PR",lat:-25.5285,lon:-49.1758},
+{icao:"SBCF",name:"Tancredo Neves Intl",city:"Belo Horizonte, MG",lat:-19.63571,lon:-43.966928},
+{icao:"SBEG",name:"Eduardo Gomes Intl",city:"Manaus, AM",lat:-3.03861,lon:-60.049702},
+{icao:"SBFL",name:"Hercílio Luz Intl",city:"Florianópolis, SC",lat:-27.670279,lon:-48.552502},
+{icao:"SBCG",name:"Campo Grande",city:"Campo Grande, MS",lat:-20.469998,lon:-54.673988},
+{icao:"SBBE",name:"Val de Cans Intl",city:"Belém, PA",lat:-1.379279,lon:-48.476207},
+{icao:"SBGO",name:"Santa Genoveva",city:"Goiânia, GO",lat:-16.632,lon:-49.220699},
+{icao:"SBBH",name:"Pampulha",city:"Belo Horizonte, MG",lat:-19.85074,lon:-43.950316},
+{icao:"SBCY",name:"Marechal Rondon Intl",city:"Cuiabá, MT",lat:-15.6529,lon:-56.116699},
+{icao:"SBLO",name:"Gov. José Richa",city:"Londrina, PR",lat:-23.334375,lon:-51.128365},
+{icao:"SBRP",name:"Leite Lopes",city:"Ribeirão Preto, SP",lat:-21.134314,lon:-47.774053},
+{icao:"SBSG",name:"São Gonçalo do Amarante",city:"Natal, RN",lat:-5.769822,lon:-35.36661},
+{icao:"SBVT",name:"Eurico de Aguiar Salles",city:"Vitória, ES",lat:-20.258,lon:-40.285},
+{icao:"SBMG",name:"Sílvio Name Júnior",city:"Maringá, PR",lat:-23.47606,lon:-52.016187},
+{icao:"SBMT",name:"Campo de Marte",city:"São Paulo, SP",lat:-23.5091,lon:-46.637798},
+{icao:"SBJD",name:"Jundiaí",city:"Jundiaí, SP",lat:-23.180861,lon:-46.943921},
+{icao:"SSPS",name:"Palmas",city:"Palmas, PR",lat:-26.472,lon:-51.975899},
+{icao:"SDRC",name:"Fazenda Santana",city:"Rancharia, SP",lat:-22.181663,lon:-50.865319},
+{icao:"SBPV",name:"Gov. Jorge Teixeira Intl",city:"Porto Velho, RO",lat:-8.708491,lon:-63.902338},
+{icao:"SBBV",name:"Atlas Brasil Cantanhede",city:"Boa Vista, RR",lat:2.84615,lon:-60.690648},
+{icao:"SBRB",name:"Plácido de Castro Intl",city:"Rio Branco, AC",lat:-9.869031,lon:-67.893984},
+{icao:"SBMQ",name:"Alberto Alcolumbre Intl",city:"Macapá, AP",lat:0.050664,lon:-51.072201},
+{icao:"SBTT",name:"Tabatinga Intl",city:"Tabatinga, AM",lat:-4.25567,lon:-69.935799},
+{icao:"SBPJ",name:"Brig. Lysias Rodrigues",city:"Palmas, TO",lat:-10.2915,lon:-48.356998},
+];
+
+/* =====================================================
+   INIT
+   ===================================================== */
+carregarHist();
+loadBase();
+</script>
+</body>
+</html>
