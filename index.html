@@ -140,7 +140,7 @@ footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;c
 <header>
   <div>
     <p class="eye">Registro &amp; navegação</p>
-    <h1>Painel de Voo</h1>
+    <h1>PP-IDC</h1>
   </div>
   <div class="tag">TBM900 · HORÍMETRO · ROTA · COMBUSTÍVEL</div>
 </header>
@@ -156,11 +156,11 @@ footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;c
     <div class="row2">
       <div>
         <label for="hIni">Decolagem</label>
-        <input type="number" id="hIni" placeholder="1234.5" step="0.01" inputmode="decimal">
+        <input type="number" id="hIni" placeholder="0000.0" step="0.01" inputmode="decimal">
       </div>
       <div>
         <label for="hFim">Pouso</label>
-        <input type="number" id="hFim" placeholder="1236.2" step="0.01" inputmode="decimal">
+        <input type="number" id="hFim" placeholder="0000.0" step="0.01" inputmode="decimal">
       </div>
     </div>
 
@@ -173,19 +173,18 @@ footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;c
 
   <!-- ====== DISTÂNCIA ====== -->
   <section class="card">
-    <div class="cardhead"><h2>Distância (ICAO)</h2><span class="n">02</span></div>
-
-    <div class="dbbar"><div class="dot spin" id="dbDot"></div><span id="dbTxt">Carregando aeródromos…</span></div>
-
+    <div class="cardhead"><h2>Distância</h2><span class="n">02</span></div>
+    
+    <p class="sub" id="dSub">Digite o ICAO</p>
     <div class="row2">
       <div class="field">
         <label for="icaoA">Origem</label>
-        <input type="text" class="icao" id="icaoA" placeholder="SBGR" autocomplete="off" maxlength="6">
+        <input type="text" class="icao" id="icaoA" placeholder="ICAO" autocomplete="off" maxlength="6">
         <div class="suggest" id="sugA" style="display:none;"></div>
       </div>
       <div class="field">
         <label for="icaoB">Destino</label>
-        <input type="text" class="icao" id="icaoB" placeholder="SBRJ" autocomplete="off" maxlength="6">
+        <input type="text" class="icao" id="icaoB" placeholder="ICAO" autocomplete="off" maxlength="6">
         <div class="suggest" id="sugB" style="display:none;"></div>
       </div>
     </div>
@@ -195,7 +194,6 @@ footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;c
     <div class="readout">
       <div><div class="rl">Distância</div><div class="rv muted" id="rDist">—<span class="unit">NM</span></div></div>
     </div>
-    <p class="sub" id="dSub">Selecione da lista ou digite o ICAO completo.</p>
     <p class="sub" id="dInfo" style="margin-top:4px;"></p>
   </section>
 
@@ -206,15 +204,14 @@ footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;c
     <div class="fuelgrid">
       <div>
         <label for="fuelIni">Combustível na decolagem (gal US)</label>
-        <input type="number" id="fuelIni" placeholder="ex: 220" step="1" inputmode="decimal" oninput="calcFuel()">
+        <input type="number" id="fuelIni" placeholder="" step="1" inputmode="decimal" oninput="calcFuel()">
       </div>
       <div>
         <label for="fuelFlow">Consumo médio (GPH)</label>
-        <input type="number" id="fuelFlow" value="55" step="0.5" inputmode="decimal" oninput="calcFuel()">
+        <input type="number" id="fuelFlow" value="60" step="0.5" inputmode="decimal" oninput="calcFuel()">
       </div>
       <div>
         <label for="fuelCap">Capacidade total (gal US)</label>
-        <input type="number" id="fuelCap" value="291" step="1" inputmode="decimal" oninput="calcFuel()">
       </div>
     </div>
 
