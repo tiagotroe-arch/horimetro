@@ -180,12 +180,12 @@ footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;c
     <div class="row2">
       <div class="field">
         <label for="icaoA">Origem</label>
-        <input type="text" class="icao" id="icaoA" placeholder="SBGR" autocomplete="off" maxlength="6">
+        <input type="text" class="icao" id="icaoA" placeholder= autocomplete="off" maxlength="6">
         <div class="suggest" id="sugA" style="display:none;"></div>
       </div>
       <div class="field">
         <label for="icaoB">Destino</label>
-        <input type="text" class="icao" id="icaoB" placeholder="SBRJ" autocomplete="off" maxlength="6">
+        <input type="text" class="icao" id="icaoB" placeholder= autocomplete="off" maxlength="6">
         <div class="suggest" id="sugB" style="display:none;"></div>
       </div>
     </div>
@@ -206,15 +206,15 @@ footer{text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;c
     <div class="fuelgrid">
       <div>
         <label for="fuelIni">Combustível na decolagem (gal US)</label>
-        <input type="number" id="fuelIni" placeholder="ex: 220" step="1" inputmode="decimal" oninput="calcFuel()">
+        <input type="number" id="fuelIni" placeholder= step="1" inputmode="decimal" oninput="calcFuel()">
       </div>
       <div>
         <label for="fuelFlow">Consumo médio (GPH)</label>
-        <input type="number" id="fuelFlow" value="55" step="0.5" inputmode="decimal" oninput="calcFuel()">
+        <input type="number" id="fuelFlow" value="60" step="0.5" inputmode="decimal" oninput="calcFuel()">
       </div>
       <div>
         <label for="fuelCap">Capacidade total (gal US)</label>
-        <input type="number" id="fuelCap" value="291" step="1" inputmode="decimal" oninput="calcFuel()">
+        <input type="number" id="fuelCap" value="292" step="1" inputmode="decimal" oninput="calcFuel()">
       </div>
     </div>
 
@@ -576,7 +576,6 @@ async function loadBase(){
   if(lista.length<50){ APS=FALLBACK; setDb(`Erro ao processar — ${FALLBACK.length} aeródromos internos`,'err'); return; }
 
   APS = lista;
-  setDb(`${APS.length} aeródromos carregados`, 'ok');
   try{ await stSet(CACHE_KEY, JSON.stringify({ts:Date.now(),list:lista})); }catch(e){}
 }
 
